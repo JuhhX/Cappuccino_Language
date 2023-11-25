@@ -1,0 +1,14 @@
+Int number;
+
+public static Void setNumber(Int n){
+	number = n;
+}
+
+public static Int getNumber(){
+	return number;
+}
+
+setNumber(13);
+Int resposta = getNumber();
+
+println(resposta);

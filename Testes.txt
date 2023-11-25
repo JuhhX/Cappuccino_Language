@@ -1,0 +1,151 @@
+while(contador < 10){
+	if((digitado * contador) % 2 == 0) {
+		printf("{digitado} X {contador} = {digitado * contador}");
+	}
+	contador = contador + 1;
+}
+
+===============================================================================
+
+if(digitado == 0){
+	print("ZERO");
+}
+else if(digitado == 1){
+	print("UM");
+}
+else if(digitado == 2){
+	print("DOIS");
+}
+else{
+	print("NAO SEI");
+}
+
+while(contador < 10){
+	if((digitado * contador) % 2 == 0)
+		printf("{digitado} X {contador} = {digitado * contador}");
+	contador = contador + 1;
+}
+
+===============================================================================
+
+while(continuar == 1){
+	println("Digite um numero de 0 a 10: ");
+	digitado = readInt();
+	println("");
+
+	while(digitado < 0){
+		println("Por favor, digite numeros maiores do que zero!");
+		digitado = readInt();
+		println("");
+	}
+
+	while(contador < 11){
+		printf("{digitado} X {contador} = {digitado * contador}");
+		contador = contador + 1;
+	}
+
+	println("");
+	println("Deseja continuar? [1] - Sim [0] - Nao");
+	continuar = readInt();
+	contador = 0;
+	println("");
+}
+
+===============================================================================
+
+Int soma = 0;
+Int media = 0;
+Int quantidade = 0;
+Int nota = 0;
+
+while(nota != 1000){
+	println("Digite a nota do aluno: [1000 para parar]");
+	nota = readInt();
+	println("");
+
+	if(nota != 1000){
+		soma = soma + nota;
+		quantidade++;
+	}
+}
+
+media = soma / quantidade;
+printf("A media do aluno e {media}");
+
+===============================================================================
+
+Double soma;
+Double media;
+Double nota;
+
+Int qntNotas;
+println("Digite quantas notas ira ler: ");
+qntNotas = readInt();
+
+for(Int x = 0; x < qntNotas; x++){
+	printf("Digite a {x+1} nota: ");
+	nota = readDouble();
+
+	soma = soma + nota;
+}
+
+media = soma / qntNotas;
+printf("A nota final do aluno e: {media}");
+
+===============================================================================
+
+String nome;
+Int idade;
+Int execute;
+
+while(execute == 0){
+	Int option;
+	println("Selecione uma opcao: \n[1] - Cadastrar \n[2] - Ver ultimo \n[3] - Sair\n\n> ");
+	option = readInt();
+	println("");
+
+	if(option == 1){
+		print("Digite o nome da pessoa\n>");
+		nome = readLine();
+		print("\nDigite a idade da pessoa\n> ");
+		idade = readInt();
+
+		println("\nOK ... Cadastrado\n\n");
+	}
+	else if(option == 2){
+		println("\nO ultimo usuario cadastrado foi: \n");
+		printf("Nome: {nome}\nIdade: {idade}\n\n");
+	}
+	else if(option == 3){
+		execute = 1;
+	}
+	else{
+		println("Por favor insira uma das opcoes!!\n\n");
+	}
+}
+
+===============================================================================
+
+public static void calcularTabuada(Int n){
+	printf("=== TABUADA DO {n} ===");
+	for(Int x = 0; x < 11; x++){
+		printf("{n} X {x} = {n * x}");
+	}
+	printf("======================\n\n");
+}
+
+Int option = 1;
+
+while(option == 1){
+
+	Int numero;
+	print("Digite um numero para a tabuada: \n> ");
+	numero = readInt();
+	println("");
+
+	calcularTabuada(numero);
+
+	print("Deseja continuar? \n[0] - Nao\n[1] - Sim\n> ");
+	option = readInt();
+	println("");
+}

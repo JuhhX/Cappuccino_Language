@@ -1,0 +1,75 @@
+02/11/2023
+- Adicionadas variáveis Int, Double, String, Boolean e Char.
+- Adicionados comandos print, println e printf.
+- Adicionadas verificações de (;) e erros de tipos.
+
+08/11/2023
+- Adicionada avaliação de expressões numéricas.
+- Variáveis agora podem ser declaradas com expressões (Int e Double).
+
+10/11/2023
+- Variáveis string agora podem receber outra variável como parametro.
+- Strings agora podem ser concatenadas.
+- Strings agora podem ser formatadas.
+
+12/11/2023
+- Adicionados comandos readLine, readInt e readDouble;
+- Strings, Ints e Doubles agora podem ser lidos.
+
+13/11/2023
+- Adicionadas avaliações de expressões booleanas.
+- Variáveis agora podem ser declaradas com expressões (Boolean).
+
+14/11/2023
+- Adicionado o IF e ElSE
+
+15/11/2023
+- Adicionado WHILE
+
+17/11/2023
+- Adicionado ELSE IF
+
+18/11/2023
+- Adicionados escopos para IF, ELSE IF, ELSE e WHILE
+
+19/11/2023
+- IF, ELSE IF e ELSE podem ser aninhados no WHILE
+- Adicionado operador de resto da divisão %
+
+22/11/2023
+- Corrigido erro de IF, ELSE IF e ELSE aninhado em WHILE
+- WHILE não é mais disparado duas vezes
+- Corrigidos erros do WHILE
+- Adicionada variante do WHILE
+- WHILE não permite o modelo single instruction
+- Adicionadas atualizações de variáveis com ++ e --
+
+23/11/2023
+- Adicionado FOR loop
+
+24/11/2023
+- Corrigidas operações com sinais negativos
+- Expressões booleanas podem ser verificadas com números negativos
+- FOR agora funciona com números negativos
+- Adicionados operadores +=, -=, *=, /= e %=
+- Adicionado \n para quebra de linha de Strings
+
+25/11/2023
+- Métodos podem retornar Int e Double
+
+LISTA DO QUE FAZER
+- Adicionar \t e etc nas Strings.
+- Adicionar ++ e -- no resolveAssignment. Para que variaveis possam ser atribuidas com eles
+- Adicionar ++ e -- no começo de expressoes;
+- Adicionar quick sort e binary search para pesquisar elementos em vetores;
+- Ajustar FOR single Instruction
+- Adicionar comparação entre strings.
+- Arrumar a contagem de linhas ao voltar com o seekg()
+- Adicionar restrições para nomes de variaveis e metodos;
+- ELSE sendo disparado depois de IF in line
+- METHODS não funcionam no IF single struction
+- Adicionar variante de METHOD
+- Erro de METHOD com tipo diferente do retorno
+- Booleans e chars não podem ser lidos ainda e muito menos atribuidos de outras formas
+- Adicionar vetores
+- Ajustar resolves para Strings.
