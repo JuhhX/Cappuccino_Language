@@ -1,14 +1,28 @@
-Int number;
+String name;
+Int age;
+String height;
 
-public static Void setNumber(Int n){
-	number = n;
+public static void constructor(String n, Int a, String h){
+	name = n;
+	age = a;
+	height = h;
 }
 
-public static Int getNumber(){
-	return number;
+public static String getName(){
+	return name;
 }
 
-setNumber(13);
-Int resposta = getNumber();
+public static Int getAge(){
+	return age;
+}
 
-println(resposta);
+public static String getHeight(){
+	return height;
+}
+
+constructor("Julio", 21, "1.70");
+
+String n = getName();
+Int i = getAge();
+String h = getHeight();
+printf("Ola {n}, voce tem {i} anos e {h} de altura.");

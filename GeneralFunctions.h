@@ -32,7 +32,7 @@ static map<string, string> string_variables;
 
 static vector<string> variables_names;
 
-static struct FunctionsAssignment
+struct FunctionsAssignment
 {
 	string visibility;
 	string acessibility;
@@ -40,6 +40,8 @@ static struct FunctionsAssignment
 	string name;
 	string params;
 	int start_in_line;
+
+	FunctionsAssignment() = default;
 };
 
 class Scope {
@@ -50,6 +52,7 @@ class Scope {
 		string step_for;
 
 		int block_count = 0;
+		int back_loop_in_position = 0;
 		int back_loop_in_line = 0;
 
 		bool execute_block = false;
@@ -97,6 +100,14 @@ static map<string, function<void(string)>> functions;
 static stack<Scope> scopes;
 
 static map<string, FunctionsAssignment> custom_functions;
+
+struct Operands {
+	bool is_string = false;
+	double double_value;
+	string string_value;
+
+	Operands() = default;
+};
 
 void print(string params);
 void println(string params);

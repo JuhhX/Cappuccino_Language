@@ -20,6 +20,8 @@ else{
 	print("NAO SEI");
 }
 
+===============================================================================
+
 while(contador < 10){
 	if((digitado * contador) % 2 == 0)
 		printf("{digitado} X {contador} = {digitado * contador}");

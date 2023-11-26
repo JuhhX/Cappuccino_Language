@@ -1,9 +1,8 @@
 ﻿  General.cpp
 C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\GeneralFunctions.h(25,2): warning C4091: 'static ': ignored on left of 'FunctionsRetruns' when no variable is declared
-C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\GeneralFunctions.h(43,2): warning C4091: 'static ': ignored on left of 'FunctionsAssignment' when no variable is declared
-C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\General.cpp(1213,77): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\General.cpp(1225,73): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\General.cpp(1270,77): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\General.cpp(1291,73): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\General.cpp(1322,65): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\General.cpp(1387,81): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\General.cpp(1400,77): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\General.cpp(1446,81): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\General.cpp(1468,77): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\Capuccino\General.cpp(1499,65): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
   Capuccino.vcxproj -> C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\x64\Debug\Capuccino.exe

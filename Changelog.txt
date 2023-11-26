@@ -57,19 +57,27 @@
 25/11/2023
 - Métodos podem retornar Int e Double
 
+26/11/2023
+- Adicionados comandos readBoolean e readChar
+- Agora Strings podem ser comparadas
+- Strings agora podem ser tabuladas com \t
+- Ajustada contagem de linhas em escopos
+- METHODS não disparam mais condições infinitamente
+- ELSE não pe mais disparado após o IF satisfeito dentro de METHODS
+- O interpretador agora bloqueia métodos com retorno diferente dos definidos
+- Strings são retornadas corretamente por métodos
+- Valores podem ser retornados de METHODS
+
 LISTA DO QUE FAZER
-- Adicionar \t e etc nas Strings.
+- resolves devem verificar métodos também (Metodos devem buscar os valores automaticamente ao invés de buscar quando mudar de linha)
+
 - Adicionar ++ e -- no resolveAssignment. Para que variaveis possam ser atribuidas com eles
 - Adicionar ++ e -- no começo de expressoes;
 - Adicionar quick sort e binary search para pesquisar elementos em vetores;
 - Ajustar FOR single Instruction
-- Adicionar comparação entre strings.
-- Arrumar a contagem de linhas ao voltar com o seekg()
 - Adicionar restrições para nomes de variaveis e metodos;
-- ELSE sendo disparado depois de IF in line
-- METHODS não funcionam no IF single struction
 - Adicionar variante de METHOD
-- Erro de METHOD com tipo diferente do retorno
-- Booleans e chars não podem ser lidos ainda e muito menos atribuidos de outras formas
 - Adicionar vetores
-- Ajustar resolves para Strings.
+- Adicionar soma de strings para comparações booleanas.
+
+- METHODS não funcionam no IF single struction (Não há uma mudança de linha para que dê tempo do método ser chamado)

@@ -42,7 +42,7 @@ string getVariableValue(string s, bool ignore_throw){
     else if (boolean_variables.count(s))
         returned = to_string(boolean_variables[s]);
     else if (char_variables.count(s))
-        returned = to_string(char_variables[s]);
+        returned = (char(char_variables[s]));
     else if(!ignore_throw) {
         throwError(errors.VARIABLE_NOT_EXISTS, s);
         throw - 1;
@@ -77,6 +77,42 @@ string getTypeOfVariable(string s) {
         returned = "Boolean";
     else if (char_variables.count(s))
         returned = "Char";
+
+    return returned;
+}
+
+//Obtem o tipo do dado
+string getTypeOfData(string s) {
+    string returned = "Null";
+    s = split(s, ";")[0];
+
+    if (startsWith(s, "\"") && endsWith(s, "\""))
+        returned = "String";
+    else if (s == "true" || s == "false")
+        returned = "Boolean";
+    else if (startsWith(s, "\'") && endsWith(s, "\'"))
+        returned = "Char";
+    else {
+        bool digit = true;
+        int point_count = 0;
+
+        for (char c : s) {
+            if (c == '.') {
+                point_count++;
+                continue;
+            }
+
+            if (!isdigit(c)) {
+                digit = false;
+                break;
+            }
+        }
+
+        if (point_count == 1 && digit)
+            returned = "Double";
+        else if (digit)
+            returned = "Int";
+    }
 
     return returned;
 }
@@ -117,15 +153,35 @@ string formatInString(string s) {
     return result;
 }
 
+//Faz a tabulação de linhas em strings
+void resolveTab(string t, int retreat) {
+    vector<string> splited = split(t, "\\t");
+    int count = 0;
+
+    for (string s : splited) {
+        if (count == 0)  cout << s.substr(retreat, s.length()) << "\t";
+        else if (count == splited.size() - 1) cout << s.substr(0, s.length() - retreat);
+        else cout << s << "\t";
+        count++;
+    }
+}
+
 //Faz a quebra de linhas nas strings
 void resolveLineBreak(string t, int retreat) {
     vector<string> splited = split(t, "\\n");
     int count = 0;
 
     for (string s : splited) {
-        if (count == 0)  cout << s.substr(retreat, s.length()) << endl;
-        else if (count == splited.size() - 1) cout << s.substr(0, s.length() - retreat);
-        else cout << s << endl;
+        if (s.find("\\t") != string::npos) {
+            resolveTab(s, 0);
+            if (count == 0)  cout  << endl;
+            else cout << endl;
+        }
+        else {
+            if (count == 0)  cout << s.substr(retreat, s.length()) << endl;
+            else if (count == splited.size() - 1) cout << s.substr(0, s.length() - retreat);
+            else cout << s << endl;
+        }
         count++;
     }
 }
@@ -136,12 +192,16 @@ void print(string params) {
     string r;
     if (params.find("\\n") != string::npos)
         resolveLineBreak(params, 1);
+    else if (params.find("\\t") != string::npos)
+        resolveTab(params, 1);
     else {
         if (isString(params))
             cout << params.substr(1, params.length() - 2);
         else if ((r = getVariableValue(params, true)) != "") {
             if (r.find("\\n") != string::npos)
                 resolveLineBreak(r, 0);
+            else if (r.find("\\t") != string::npos)
+                resolveTab(r, 0);
             else
                 cout << r;
         }
@@ -157,12 +217,16 @@ void println(string params) {
     string r;
     if (params.find("\\n") != string::npos)
         resolveLineBreak(params, 1);
+    else if (params.find("\\t") != string::npos)
+        resolveTab(params, 1);
     else {
         if (isString(params))
             cout << params.substr(1, params.length() - 2) << endl;
         else if ((r = getVariableValue(params, true)) != "") {
-            if (r.find("\\n") != string::npos) 
+            if (r.find("\\n") != string::npos)
                 resolveLineBreak(r, 0);
+            else if (r.find("\\t") != string::npos)
+                resolveTab(r, 0);
             else 
                 cout << r << endl;
         }
@@ -178,11 +242,13 @@ void printf_(string params) {
         string formated = formatInString(params);
         if (formated.find("\\n") != string::npos)
             resolveLineBreak(formated, 1);
+        else if (params.find("\\t") != string::npos)
+            resolveTab(params, 1);
         else
             cout << formated.substr(1, formated.length() - 2) << endl;
     }
     else 
-        cout << "ERRO" << endl;
+        throwError(errors.INVALID_PARAMETER, params);
 }
 
 //Dispara erros
@@ -397,16 +463,19 @@ string resolveAssignmentString(string params) {
 }
 
 //Resolve a expressão NOT
-void not_expression(stack<string> *ops, stack<string> * aux_ops, stack<double> * opr, stack<double> *aux_opr) {
+void not_expression(stack<string> *ops, stack<string> * aux_ops, stack<Operands> * opr, stack<Operands> *aux_opr) {
     while (!ops -> empty()) {
         string op = ops -> top();
         ops -> pop();
 
-        double n1 = opr->top();
+        Operands n1 = opr->top();
         opr->pop();
 
-        if (op == to_string('!'))
-            opr->push(!n1);
+        if (op == to_string('!')) {
+            Operands op_struct;
+            op_struct.double_value = !n1.double_value;
+            opr->push(op_struct);
+        }
         else {
             aux_ops -> push(op);
             aux_opr->push(n1);
@@ -418,29 +487,38 @@ void not_expression(stack<string> *ops, stack<string> * aux_ops, stack<double> *
 
     *opr = *aux_opr;
     *ops = *aux_ops;
-    *aux_opr = stack<double>();
+    *aux_opr = stack<Operands>();
     *aux_ops = stack<string>();
 }
 
 //Resolve expressões de MAIOR, MAIOR IGUAL, MENOR e MENOR IGUAL
-void more_or_less_expression(stack<string>* ops, stack<string>* aux_ops, stack<double>* opr, stack<double>* aux_opr) {
+void more_or_less_expression(stack<string>* ops, stack<string>* aux_ops, stack<Operands>* opr, stack<Operands>* aux_opr) {
     while (!ops->empty()) {
         string op = ops->top();
         ops->pop();
 
-        double n1 = opr->top();
+        Operands n1 = opr->top();
         opr->pop();
-        double n2 = opr->top();
+        Operands n2 = opr->top();
         opr->pop();
 
-        if (op == to_string('<'))
-            opr->push(n1 < n2);
-        else if (op == "<=")
-            opr->push(n1 <= n2);
-        else if (op == to_string('>'))
-            opr->push(n1 > n2);
-        else if (op == ">=")
-            opr->push(n1 >= n2);
+        Operands op_struct;
+        if (op == to_string('<')) {
+            op_struct.double_value = n1.double_value < n2.double_value;
+            opr->push(op_struct);
+        }
+        else if (op == "<=") {
+            op_struct.double_value = n1.double_value <= n2.double_value;
+            opr->push(op_struct);
+        }
+        else if (op == to_string('>')) {
+            op_struct.double_value = n1.double_value > n2.double_value;
+            opr->push(op_struct);
+        }
+        else if (op == ">=") {
+            op_struct.double_value = n1.double_value >= n2.double_value;
+            opr->push(op_struct);
+        }
         else {
             aux_ops->push(op);
             aux_opr->push(n1);
@@ -453,25 +531,32 @@ void more_or_less_expression(stack<string>* ops, stack<string>* aux_ops, stack<d
 
     *opr = *aux_opr;
     *ops = *aux_ops;
-    *aux_opr = stack<double>();
+    *aux_opr = stack<Operands>();
     *aux_ops = stack<string>();
 }
 
 //Resolve expressões de IGUAL ou DIFERENTE
-void equals_or_different_expression(stack<string>* ops, stack<string>* aux_ops, stack<double>* opr, stack<double>* aux_opr) {
+void equals_or_different_expression(stack<string>* ops, stack<string>* aux_ops, stack<Operands>* opr, stack<Operands>* aux_opr) {
     while (!ops->empty()) {
         string op = ops->top();
         ops->pop();
 
-        double n1 = opr->top();
+        Operands n1 = opr->top();
         opr->pop();
-        double n2 = opr->top();
+        Operands n2 = opr->top();
         opr->pop();
 
-        if (op == "==")
-            opr->push(n1 == n2);
-        else if (op == "!=")
-            opr->push(n1 != n2);
+        Operands op_struct;
+        string n1_value = (n1.is_string) ? n1.string_value : to_string(n1.double_value);
+        string n2_value = (n2.is_string) ? n2.string_value : to_string(n2.double_value);
+        if (op == "==") {
+            op_struct.double_value = n1_value == n2_value;
+            opr->push(op_struct);
+        }
+        else if (op == "!=") {
+            op_struct.double_value = n1_value != n2_value;
+            opr->push(op_struct);
+        }
         else {
             aux_ops->push(op);
             aux_opr->push(n1);
@@ -484,23 +569,26 @@ void equals_or_different_expression(stack<string>* ops, stack<string>* aux_ops, 
 
     *opr = *aux_opr;
     *ops = *aux_ops;
-    *aux_opr = stack<double>();
+    *aux_opr = stack<Operands>();
     *aux_ops = stack<string>();
 }
 
 //Resolve a expressões AND
-void and_expression(stack<string>* ops, stack<string>* aux_ops, stack<double>* opr, stack<double>* aux_opr) {
+void and_expression(stack<string>* ops, stack<string>* aux_ops, stack<Operands>* opr, stack<Operands>* aux_opr) {
     while (!ops->empty()) {
         string op = ops->top();
         ops->pop();
 
-        double n1 = opr->top();
+        Operands n1 = opr->top();
         opr->pop();
-        double n2 = opr->top();
+        Operands n2 = opr->top();
         opr->pop();
 
-        if (op == "&&")
-            opr->push(n1 && n2);
+        Operands op_struct;
+        if (op == "&&") {
+            op_struct.double_value = n1.double_value && n2.double_value;
+            opr->push(op_struct);
+        }
         else {
             aux_ops->push(op);
             aux_opr->push(n1);
@@ -513,23 +601,26 @@ void and_expression(stack<string>* ops, stack<string>* aux_ops, stack<double>* o
 
     *opr = *aux_opr;
     *ops = *aux_ops;
-    *aux_opr = stack<double>();
+    *aux_opr = stack<Operands>();
     *aux_ops = stack<string>();
 }
 
 //Resolve a expressões OR
-void or_expression(stack<string>* ops, stack<string>* aux_ops, stack<double>* opr, stack<double>* aux_opr) {
+void or_expression(stack<string>* ops, stack<string>* aux_ops, stack<Operands>* opr, stack<Operands>* aux_opr) {
     while (!ops->empty()) {
         string op = ops->top();
         ops->pop();
 
-        double n1 = opr->top();
+        Operands n1 = opr->top();
         opr->pop();
-        double n2 = opr->top();
+        Operands n2 = opr->top();
         opr->pop();
 
-        if (op == "||")
-            opr->push(n1 || n2);
+        Operands op_struct;
+        if (op == "||") {
+            op_struct.double_value = n1.double_value || n2.double_value;
+            opr->push(op_struct);
+        }
         else {
             aux_ops->push(op);
             aux_opr->push(n1);
@@ -542,14 +633,14 @@ void or_expression(stack<string>* ops, stack<string>* aux_ops, stack<double>* op
 
     *opr = *aux_opr;
     *ops = *aux_ops;
-    *aux_opr = stack<double>();
+    *aux_opr = stack<Operands>();
     *aux_ops = stack<string>();
 }
 
 //Resolve uma expressão booleana
 string resolveEvaluation(string params) {
 
-    stack<double> operands, aux_operands;
+    stack<Operands> operands, aux_operands;
     stack<string> operations, aux_operations;
     string temp;
     bool is_reading_parenthesis = false;
@@ -570,12 +661,28 @@ string resolveEvaluation(string params) {
                     operations.push(to_string(params[x]));
 
                 if (temp != "") {
+                    Operands op_struct;
                     if (temp == "true") temp = "1";
                     else if (temp == "false") temp = "0";
-                    else if (variableExists(temp))
-                        operands.push(stod(getVariableValue(temp, false)));
-                    else
-                        operands.push(stod(resolveAssignment(temp)));
+                    else if (variableExists(temp)) {
+                        if (getTypeOfVariable(temp) != "String") {
+                            op_struct.double_value = stod(getVariableValue(temp, false));
+                        }
+                        else {
+                            op_struct.is_string = true;
+                            op_struct.string_value = "\"" + getVariableValue(temp, false) + "\"";
+                        }
+                        operands.push(op_struct);
+                    }
+                    else {
+                        if (startsWith(temp, "\"") && endsWith(temp, "\"")) {
+                            op_struct.is_string = true;
+                            op_struct.string_value = resolveAssignmentString(temp);
+                        }
+                        else
+                            op_struct.double_value = stod(resolveAssignment(temp));
+                        operands.push(op_struct);
+                    }
                 }
                 temp = "";
             }
@@ -605,12 +712,29 @@ string resolveEvaluation(string params) {
     }
 
     if (temp != "") {
+        Operands op_struct;
         if (temp == "true") temp = "1";
         else if (temp == "false") temp = "0";
-        else if (variableExists(temp))
-            operands.push(stod(getVariableValue(temp, false)));
-        else
-            operands.push(stod(resolveAssignment(temp)));
+        else if (variableExists(temp)) {
+            if (getTypeOfVariable(temp) != "String") {
+                op_struct.double_value = stod(getVariableValue(temp, false));
+            }
+            else {
+                op_struct.is_string = true;
+                op_struct.string_value = "\"" + getVariableValue(temp, false) + "\"";
+            }
+            operands.push(op_struct);
+        }
+        else {
+            //Arrumar o resolveAssignment
+            if (startsWith(temp, "\"") && endsWith(temp, "\"")) {
+                op_struct.is_string = true;
+                op_struct.string_value = resolveAssignmentString(temp);
+            }
+            else
+                op_struct.double_value = stod(resolveAssignment(temp));
+            operands.push(op_struct);
+        }
     }
 
     not_expression(&operations, &aux_operations, &operands, &aux_operands);
@@ -623,7 +747,12 @@ string resolveEvaluation(string params) {
 
     or_expression(&operations, &aux_operations, &operands, &aux_operands);
 
-    return to_string((int) operands.top());
+    if (operands.top().is_string) {
+        string formated = operands.top().string_value;
+        operands.top().string_value = formated.substr(1, formated.length() - 2);
+    }
+
+    return (operands.top().is_string) ? operands.top().string_value : to_string((int)operands.top().double_value);
 }
 
 //Coloca a variavel em seu devido map
@@ -714,6 +843,13 @@ void declareVariable(string content, bool update) {
                 if (values.size() == 2) {
                     if (values[1] == "true;")
                         boolean_variables[values[0]] = true;
+                    else if (isNativeFunction(values[1], true)) {
+                        executeNativeFunction(values[1]);
+                        if (scopes.top().current_return_type == "Boolean")
+                            boolean_variables[values[0]] = scopes.top().returned.returned_boolean;
+                        else
+                            throwError(errors.INCORRECT_TYPE, values[1]);
+                    }
                     else if (values[1] != "true;" || values[1] != "false;")
                         boolean_variables[values[0]] = stoi(resolveEvaluation(values[1]));
                     else
@@ -723,8 +859,17 @@ void declareVariable(string content, bool update) {
                     boolean_variables[values[0]] = false;
             }
             else if (p[0] == "Char") {
-                if (values.size() == 2)
-                    char_variables[values[0]] = values[1][0];
+                if (values.size() == 2) {
+                    if (isNativeFunction(values[1], true)) {
+                        executeNativeFunction(values[1]);
+                        if (scopes.top().current_return_type == "Char")
+                            char_variables[values[0]] = scopes.top().returned.returned_char;
+                        else
+                            throwError(errors.INCORRECT_TYPE, values[1]);
+                    }
+                    else
+                        char_variables[values[0]] = values[1][0];
+                }
                 else
                     char_variables[values[0]] = 0;
             }
@@ -754,14 +899,15 @@ void executeNativeFunction(string content) {
         functions[trim(command_parameters[0])](trim(command_parameters[1].substr(0, command_parameters[1].length() - 2)));
 }
 
-//
+//Executa métodos definidos no código
 void executeCustomFunction(string content) {
     vector<string> command_parameters = splitFirst(content, '(');
     
     //Sem parametros
     if (startsWith(command_parameters[1], ")") && custom_functions[trim(command_parameters[0])].params == "") {
         
-        scopes.top().back_loop_in_line = (int)(file_reference->tellg());
+        scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+        scopes.top().back_loop_in_line= current_line;
 
         Scope new_scope;
         scopes.push(new_scope);
@@ -778,7 +924,8 @@ void executeCustomFunction(string content) {
     //Com parametros
     else {
 
-        scopes.top().back_loop_in_line = (int)(file_reference->tellg());
+        scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+        scopes.top().back_loop_in_line= current_line;
         command_parameters[1] = command_parameters[1].substr(0, command_parameters[1].length() - 2);
 
         vector<string> informed_params = split(command_parameters[1], ',');
@@ -847,7 +994,7 @@ bool isNativeFunction(string content, bool ignore_error) {
     return false;
 }
 
-//
+//Verifica se é um método definido no código
 bool isCustomFunction(string content, bool ignore_error) {
     if (!read_without_execute) {
         if (isParenthesesOk(content)) {
@@ -969,7 +1116,7 @@ void updateVariable(string params) {
 
 }
 
-//
+//Verifica se é um bloco de condição
 bool isConditionBlock(string params) {
     params = trim(params);
     if (isParenthesesOk(params)){
@@ -980,7 +1127,7 @@ bool isConditionBlock(string params) {
     return startsWith(params, "else");
 }
 
-//
+//Verifica se está iniciando um escopo
 bool initsBlock(string params) {
     int count = 0;
     int open_brace_count = 0;
@@ -1058,9 +1205,11 @@ void executeConditionBlock(string params){
     else if (startsWith(trim(params), "else")) {
 
         if (scopes.top().readed_condition == "if" || scopes.top().readed_condition == "else if") {
-            if (endsWith(params, ";") && !scopes.top().satisfied_condition) {
-                vector<string> in_line = splitFirst(params, ' ');
-                interpreterLine(in_line[1]);
+            if (endsWith(params, ";")) {
+                if (!scopes.top().satisfied_condition) {
+                    vector<string> in_line = splitFirst(params, ' ');
+                    interpreterLine(in_line[1]);
+                }
             }
             else if (initsBlock(params)) {
                 Scope new_scope;
@@ -1114,9 +1263,30 @@ void executeConditionBlock(string params){
             string in_line_command = trim(in_line[1]);
             string resolved_condition = resolveEvaluation(in_line[0]);
             if (resolved_condition == "1" && in_line_command != "{") {
-                interpreterLine(in_line_command);
+                /*interpreterLine(in_line_command);
                 scopes.top().scope_type = "condition_in_line";
                 scopes.top().execute_block = true;
+                scopes.top().satisfied_condition = true;*/
+
+                if (isCustomFunction(in_line_command, true)) {
+                    scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+                    scopes.top().back_loop_in_line = current_line;
+
+                    interpreterLine(in_line_command);
+
+                    scopes.top().~Scope();
+                    scopes.pop();
+
+                    file_reference->clear();
+                    file_reference->seekg(scopes.top().back_loop_in_position);
+                    current_line = scopes.top().back_loop_in_line;
+                }
+                else {
+                    interpreterLine(in_line_command);
+                    scopes.top().execute_block = true;
+                }
+                scopes.top().scope_type = "condition_in_line";
+                scopes.top().satisfied_condition = true;
             }
             else if (initsBlock(condition[1])) {
                 Scope new_scope;
@@ -1127,7 +1297,11 @@ void executeConditionBlock(string params){
                 scopes.top().execute_block = resolved_condition == "1";
                 scopes.top().search_block_end = true;
                 scopes.top().block_count++;
+                scopes.top().satisfied_condition = scopes.top().execute_block;
                 
+            }
+            else {
+                scopes.top().satisfied_condition = false;
             }
         }
         else {
@@ -1138,8 +1312,8 @@ void executeConditionBlock(string params){
 
             scopes.top().execute_block = resolveEvaluation(condition[1].substr(0, condition[1].length() - 1)) == "1";
             scopes.top().verify_next_line = true;
+            scopes.top().satisfied_condition = scopes.top().execute_block;
         }
-        scopes.top().satisfied_condition = scopes.top().execute_block;
     }
 
 }
@@ -1210,7 +1384,8 @@ void executeWhileBlock(string params) {
                 interpreterLine(in_line_command);
         }
         else if (initsBlock(condition[1])) {
-            scopes.top().back_loop_in_line = (int)(file_reference->tellg()) - (params.length() + 2);
+            scopes.top().back_loop_in_position = (int)(file_reference->tellg()) - (params.length() + 2);
+            scopes.top().back_loop_in_line= current_line;
 
             Scope new_scope;
             scopes.push(new_scope);
@@ -1222,7 +1397,8 @@ void executeWhileBlock(string params) {
         }
     }
     else {
-        scopes.top().back_loop_in_line = (int)(file_reference->tellg()) - (params.length() + 2);
+        scopes.top().back_loop_in_position = (int)(file_reference->tellg()) - (params.length() + 2);
+        scopes.top().back_loop_in_line= current_line;
 
         Scope new_scope;
         scopes.push(new_scope);
@@ -1267,7 +1443,8 @@ void executeForBlock(string params) {
 
         }
         else if (initsBlock(condition[1])) {
-            scopes.top().back_loop_in_line = (int)(file_reference->tellg()) - (params.length() + 2);
+            scopes.top().back_loop_in_position = (int)(file_reference->tellg()) - (params.length() + 2);
+            scopes.top().back_loop_in_line= current_line;
             scopes.top().step_for = trim(loop_params[2]) + ";";
 
             Scope new_scope;
@@ -1288,7 +1465,7 @@ void executeForBlock(string params) {
                 declareVariable(loop_params[0], false);
         }
 
-        scopes.top().back_loop_in_line = (int)(file_reference->tellg()) - (params.length() + 2);
+        scopes.top().back_loop_in_position = (int)(file_reference->tellg()) - (params.length() + 2);
         scopes.top().step_for = trim(loop_params[2].substr(0, loop_params[2].length() - 1)) + ";";
 
         Scope new_scope;
@@ -1301,7 +1478,7 @@ void executeForBlock(string params) {
     }
 }
 
-//
+//Verifica se é uma declaração de método
 bool isMethodDeclaration(string params) {
     if (isParenthesesOk(params)){
         return startsWith(params, "public static");
@@ -1309,7 +1486,7 @@ bool isMethodDeclaration(string params) {
     return false;
 }
 
-//
+//Cadastra um método definido no código
 void registerMethod(string params) {
     vector<string> method_pices = splitFirst(params, '(');
     vector<string> keywords = split(method_pices[0], ' ');
@@ -1459,7 +1636,7 @@ void interpreterLineInWhile(string content, ifstream * file) {
 
                 if (back_to_top) {
                     file->clear();
-                    file->seekg(scopes.top().back_loop_in_line);
+                    file->seekg(scopes.top().back_loop_in_position);
                     current_line = scopes.top().back_loop_in_line;
                 }
             }
@@ -1516,7 +1693,7 @@ void interpreterLineInFor(string content, ifstream* file) {
                 updateVariable(scopes.top().step_for);
                 if (back_to_top) {
                     file->clear();
-                    file->seekg(scopes.top().back_loop_in_line);
+                    file->seekg(scopes.top().back_loop_in_position);
                     current_line = scopes.top().back_loop_in_line;
                 }
             }
@@ -1538,6 +1715,9 @@ void interpreterLineInMethod(string content) {
         vector<string> returned_pieces = splitFirst(content, ' ');
         string return_type = getTypeOfVariable(returned_pieces[1].substr(0, returned_pieces[1].length()-1));
 
+        if (return_type == "Null")
+            return_type = getTypeOfData(returned_pieces[1].substr(0, returned_pieces[1].length() - 1));
+
         if (return_type == scopes.top().method_reference->return_type) {
             scopes.top().current_return_type = return_type;
             
@@ -1554,14 +1734,17 @@ void interpreterLineInMethod(string content) {
             //Adicionar os outros tipos VOID e etc
         }
         else {
-            //ERRO de tipo diferente
+            throwError(errors.INCORRECT_TYPE, content);
+            throw - 1;
         }
 
         scopes.top().execute_block = false;
     }
     else if (scopes.top().execute_block && trim(content) != "}" && trim(content) != "{" && !ignore_line) {
-        if (isConditionBlock(content))
+        if (isConditionBlock(content)) {
             executeConditionBlock(content);
+            block_next_brace_count = true;
+        }
 
         else if (isWhileBlock(content)) {
             executeWhileBlock(content);
@@ -1604,7 +1787,7 @@ void interpreterLineInMethod(string content) {
 
                 if (!declaration) {
                     file_reference->clear();
-                    file_reference->seekg(scopes.top().back_loop_in_line);
+                    file_reference->seekg(scopes.top().back_loop_in_position);
                     current_line = scopes.top().back_loop_in_line;
                 }
 
@@ -1682,6 +1865,26 @@ void readDouble(string params) {
     scopes.top().current_return_type = "Double";
 }
 
+//Lê uma linha como Booleano
+void readBoolean(string params) {
+    string read_input;
+    cin >> read_input;
+
+    bool read_boolean = (read_input == "true" || read_input == "1");
+
+    scopes.top().returned.returned_boolean = read_boolean;
+    scopes.top().current_return_type = "Boolean";
+}
+
+//Lê uma linha como Char
+void readChar(string params) {
+    string read_input;
+    cin >> read_input;
+
+    scopes.top().returned.returned_char = read_input[0];
+    scopes.top().current_return_type = "Char";
+}
+
 //Inicializa as funções
 void initializeFunctions() {
     functions["print"] = print;
@@ -1690,6 +1893,8 @@ void initializeFunctions() {
     functions["readLine"] = readLine;
     functions["readInt"] = readInt;
     functions["readDouble"] = readDouble;
+    functions["readBoolean"] = readBoolean;
+    functions["readChar"] = readChar;
 }
 
 //Ler arquivo
