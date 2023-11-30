@@ -1,4 +1,15 @@
 #include "Variables.h"
+#include "General.h"
+
+map<string, int> integer_variables;
+map<string, double> double_variables;
+map<string, bool> boolean_variables;
+map<string, char> char_variables;
+map<string, string> string_variables;
+
+vector<string> variables_names;
+
+stack<Scope> scopes;
 
 //Se encontrar uma variavel com este nome, executa a função f para ela;
 void variableExecute(string s, function<void(string)> f) {

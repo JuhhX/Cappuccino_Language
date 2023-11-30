@@ -5,7 +5,6 @@
 #include <string>
 #include <functional>
 
-#include "General.h"
 #include "BasicUtilities.h"
 #include "StringUtilities.h"
 

@@ -42,7 +42,7 @@ vector<string> split(string s, char separator) {
 
 vector<string> split(string s, string separator) {
     vector<string> retorno;
-    int pos_inicial = 0;
+    size_t pos_inicial = 0;
     int pos_caract = (int)s.find(separator);
 
     while (pos_caract != string::npos) {

@@ -8,7 +8,7 @@
 #include <limits.h>
 
 #include "BasicUtilities.h"
-#include "GeneralFunctions.h"
+#include "General.h"
 
 using namespace std;
 

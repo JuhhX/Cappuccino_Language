@@ -1,9 +1,5 @@
-String nome = "Julio";
-
-public static String teste(String teste){
-	return teste;
+public static void imprimir(String n){
+	println(n);
 }
 
-String a = teste("dsadas");
-
-printf("{a}");
+imprimir("Boa tarde");

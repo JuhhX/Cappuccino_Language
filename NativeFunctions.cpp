@@ -155,3 +155,15 @@ bool isNativeFunction(string content, bool ignore_error) {
 
     return false;
 }
+
+//Inicializa as funções
+void initializeFunctions() {
+    functions["print"] = print;
+    functions["println"] = println;
+    functions["printf"] = printf_;
+    functions["readLine"] = readLine;
+    functions["readInt"] = readInt;
+    functions["readDouble"] = readDouble;
+    functions["readBoolean"] = readBoolean;
+    functions["readChar"] = readChar;
+}

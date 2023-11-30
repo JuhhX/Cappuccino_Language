@@ -127,17 +127,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Evaluations.cpp" />
     <ClCompile Include="General.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="NativeFunctions.cpp" />
     <ClCompile Include="StringUtilities.cpp" />
+    <ClCompile Include="Variables.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Main.cappuccino" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GeneralFunctions.h" />
+    <ClInclude Include="Evaluations.h" />
+    <ClInclude Include="General.h" />
+    <ClInclude Include="NativeFunctions.h" />
     <ClInclude Include="StringUtilities.h" />
     <ClInclude Include="BasicUtilities.h" />
+    <ClInclude Include="Variables.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Changelog.txt" />

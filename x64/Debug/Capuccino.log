@@ -1,2 +1,8 @@
-﻿  General.cpp
+﻿  Evaluations.cpp
+  General.cpp
+  Main.cpp
+  NativeFunctions.cpp
+  StringUtilities.cpp
+  Variables.cpp
+  Generating Code...
   Capuccino.vcxproj -> C:\Users\Julio\Documents\Projetos_CPlus\Capuccino\x64\Debug\Capuccino.exe

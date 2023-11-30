@@ -27,6 +27,15 @@
     <ClCompile Include="General.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
+    <ClCompile Include="Variables.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeFunctions.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Evaluations.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Main.cappuccino">
@@ -40,7 +49,16 @@
     <ClInclude Include="BasicUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GeneralFunctions.h">
+    <ClInclude Include="General.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Variables.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Evaluations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

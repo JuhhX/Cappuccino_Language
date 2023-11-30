@@ -812,18 +812,6 @@ string getFilename() { return filename; };
 //Define o arquivo de entrada
 void setFilename(string f) { filename = f; };
 
-//Inicializa as funções
-void initializeFunctions() {
-    functions["print"] = print;
-    functions["println"] = println;
-    functions["printf"] = printf_;
-    functions["readLine"] = readLine;
-    functions["readInt"] = readInt;
-    functions["readDouble"] = readDouble;
-    functions["readBoolean"] = readBoolean;
-    functions["readChar"] = readChar;
-}
-
 //Ler arquivo
 void readFile(string code_name) {
     ifstream file;

@@ -5,6 +5,7 @@
 #include <stack>
 #include <string>
 
+#include "General.h"
 #include "Variables.h"
 #include "StringUtilities.h"
 using namespace std;
@@ -31,6 +32,6 @@ void more_or_less_expression(stack<string>* ops, stack<string>* aux_ops, stack<O
 void equals_or_different_expression(stack<string>* ops, stack<string>* aux_ops, stack<Operands>* opr, stack<Operands>* aux_opr);
 void and_expression(stack<string>* ops, stack<string>* aux_ops, stack<Operands>* opr, stack<Operands>* aux_opr);
 void or_expression(stack<string>* ops, stack<string>* aux_ops, stack<Operands>* opr, stack<Operands>* aux_opr);
-string resolveEvaluation(string params)
+string resolveEvaluation(string params);
 
 #endif

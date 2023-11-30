@@ -28,13 +28,13 @@ union FunctionsRetruns
 	char returned_char;
 };
 
-static map<string, int> integer_variables;
-static map<string, double> double_variables;
-static map<string, bool> boolean_variables;
-static map<string, char> char_variables;
-static map<string, string> string_variables;
+extern map<string, int> integer_variables;
+extern map<string, double> double_variables;
+extern map<string, bool> boolean_variables;
+extern map<string, char> char_variables;
+extern map<string, string> string_variables;
 
-static vector<string> variables_names;
+extern vector<string> variables_names;
 
 struct FunctionsAssignment
 {
@@ -78,6 +78,10 @@ class Scope {
 
 		FunctionsAssignment * method_reference;
 
+		void push_to_scope_variables(string name) {
+			scope_variables.push_back(name);
+		}
+
 		~Scope() {
 
 			for (string var : scope_variables) {
@@ -99,9 +103,7 @@ class Scope {
 		
 };
 
-static map<string, function<void(string)>> functions;
-
-static stack<Scope> scopes;
+extern stack<Scope> scopes;
 
 static map<string, FunctionsAssignment> custom_functions;
 
@@ -115,7 +117,6 @@ bool isParenthesesOk(string content);
 
 string getFilename();
 void setFilename(string f);
-void initializeFunctions();
 void readFile(string code_name);
 
 #endif
