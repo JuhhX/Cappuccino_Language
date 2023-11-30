@@ -151,3 +151,34 @@ while(option == 1){
 	option = readInt();
 	println("");
 }
+
+===============================================================================
+
+String name;
+Int age;
+String height;
+
+public static void constructor(String n, Int a, String h){
+	name = n;
+	age = a;
+	height = h;
+}
+
+public static String getName(){
+	return name;
+}
+
+public static Int getAge(){
+	return age;
+}
+
+public static String getHeight(){
+	return height;
+}
+
+constructor("Julio", 21, "1.70");
+
+String n = getName();
+Int i = getAge();
+String h = getHeight();
+printf("Ola {n}, voce tem {i} anos e {h} de altura.");

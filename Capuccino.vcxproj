@@ -132,7 +132,7 @@
     <ClCompile Include="StringUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Main.capuccino" />
+    <None Include="Main.cappuccino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneralFunctions.h" />

@@ -115,3 +115,72 @@ bool endsWith(string s, string t) {
 bool isString(string s) {
     return s.find("\"") == 0 && s.rfind("\"") == s.length() - 1;
 }
+
+//Resolve uma expressão dentro de uma string
+string resolveFormatExpression(string params) {
+    if (variableExists(params))
+        return (getVariableValue(params, true));
+    else
+        return resolveEvaluation(params);
+}
+
+//Formata a string com variaveis dentro
+string formatInString(string s) {
+
+    string result = "";
+    int current_pos = 0;
+    int expression_init = 0;
+    bool is_reading = false;
+
+    while (current_pos < s.length()) {
+
+        if (s[current_pos] == '{') {
+            expression_init = current_pos + 1;
+            is_reading = true;
+        }
+        else if (s[current_pos] == '}') {
+            result += resolveFormatExpression(s.substr(expression_init, current_pos - expression_init));
+            is_reading = false;
+        }
+        else if (!is_reading)
+            result += s[current_pos];
+
+        current_pos++;
+    }
+
+
+    return result;
+}
+
+//Faz a tabulação de linhas em strings
+void resolveTab(string t, int retreat) {
+    vector<string> splited = split(t, "\\t");
+    int count = 0;
+
+    for (string s : splited) {
+        if (count == 0)  cout << s.substr(retreat, s.length()) << "\t";
+        else if (count == splited.size() - 1) cout << s.substr(0, s.length() - retreat);
+        else cout << s << "\t";
+        count++;
+    }
+}
+
+//Faz a quebra de linhas nas strings
+void resolveLineBreak(string t, int retreat) {
+    vector<string> splited = split(t, "\\n");
+    int count = 0;
+
+    for (string s : splited) {
+        if (s.find("\\t") != string::npos) {
+            resolveTab(s, 0);
+            if (count == 0)  cout << endl;
+            else cout << endl;
+        }
+        else {
+            if (count == 0)  cout << s.substr(retreat, s.length()) << endl;
+            else if (count == splited.size() - 1) cout << s.substr(0, s.length() - retreat);
+            else cout << s << endl;
+        }
+        count++;
+    }
+}

@@ -3,6 +3,11 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+
+#include "Evaluations.h"
+#include "Variables.h"
+
 using namespace std;
 
 string trim(string s);
@@ -13,6 +18,11 @@ vector<string> split(string s, string separator);
 vector<string> splitFirst(string s, char separator);
 vector<string> splitWhenParenthesesClosed(string s, char separator);
 vector<string> splitLast(string s, char separator);
+
+string resolveFormatExpression(string params);
+string formatInString(string s);
+void resolveTab(string t, int retreat);
+void resolveLineBreak(string t, int retreat);
 
 bool isString(string s);
 bool startsWith(string s, string t);

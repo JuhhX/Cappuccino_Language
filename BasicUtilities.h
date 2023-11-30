@@ -27,6 +27,7 @@ static struct ErrorsType {
     const string INCORRECT_TYPE = "Error: the assigned type doesn't match";
     const string NAME_NOT_ALLOWED = "Error: This name is not allowed";
     const string MISSING_PARAMETERS = "Error: It's missing some parameter(s)";
+    const string ERRORS_ANALYZING = "Error: There was an error while analyzing the code";
 } errors;
 
 #endif // !UTILITIES

@@ -1,0 +1,9 @@
+String nome = "Julio";
+
+public static String teste(String teste){
+	return teste;
+}
+
+String a = teste("dsadas");
+
+printf("{a}");
