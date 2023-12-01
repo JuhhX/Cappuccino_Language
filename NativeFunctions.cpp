@@ -1,4 +1,6 @@
 #include "NativeFunctions.h"
+#include "General.h"
+
 
 //Comando de saída
 void print(string params) {

@@ -1,4 +1,5 @@
 #include "Evaluations.h"
+#include "General.h"
 
 //Verifica se o caracter é uma expressão matemática
 bool isOperation(string params) {

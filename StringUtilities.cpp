@@ -118,7 +118,15 @@ bool isString(string s) {
 
 //Resolve uma expressão dentro de uma string
 string resolveFormatExpression(string params) {
-    if (variableExists(params))
+    if (isVector(params)) {
+        int slots = getVectorSlots(trim(params.substr(0, params.length() - 1)));
+        params = splitFirst(params, '[')[0];
+
+        if (variableExists(params + "[" + to_string(slots) + "]")) {
+            return (getVariableValue(params + "[" + to_string(slots) + "]", true));
+        }
+    }
+    else if (variableExists(params))
         return (getVariableValue(params, true));
     else
         return resolveEvaluation(params);

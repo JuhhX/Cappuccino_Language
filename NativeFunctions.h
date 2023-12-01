@@ -4,8 +4,8 @@
 #include <iostream>
 #include <string>
 #include <functional>
+#include <map>
 
-#include "General.h"
 #include "BasicUtilities.h"
 #include "StringUtilities.h"
 

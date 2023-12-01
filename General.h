@@ -78,8 +78,22 @@ class Scope {
 
 		FunctionsAssignment * method_reference;
 
-		void push_to_scope_variables(string name) {
-			scope_variables.push_back(name);
+		void pop_last_variable() {
+			string var = scope_variables[scope_variables.size() - 1];
+
+			if (integer_variables.count(var))
+				integer_variables.erase(var);
+			else if (double_variables.count(var))
+				double_variables.erase(var);
+			else if (boolean_variables.count(var))
+				boolean_variables.erase(var);
+			else if (char_variables.count(var))
+				char_variables.erase(var);
+			else if (string_variables.count(var))
+				string_variables.erase(var);
+
+			scope_variables.pop_back();
+			variables_names.pop_back();
 		}
 
 		~Scope() {

@@ -1,5 +1,0 @@
-public static void imprimir(String n){
-	println(n);
-}
-
-imprimir("Boa tarde");

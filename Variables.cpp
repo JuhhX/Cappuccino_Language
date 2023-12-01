@@ -146,9 +146,10 @@ bool isVector(string params) {
 //Obtem quantos slots tem o vetor durante a declaração
 int getVectorSlots(string params) {
     size_t inits = params.find("[");
-    params = params.substr(inits + 1, params.length() - 2);
+    size_t ends = params.rfind("]");
+    params = params.substr(inits + 1, (ends - inits) - 1);
 
-    return stoi(params);
+    return stoi(resolveAssignment(params));
 }
 
 //Declara a variável inteira
@@ -184,8 +185,14 @@ void declareInt(vector<string> values, string type_identifier) {
             current_line = scopes.top().back_loop_in_line;
         }
         else {
-            //Aqui deve adicionar a atualização de um vetor
-            integer_variables[values[0]] = stoi(resolveAssignment(values[1]));
+            //Atualização de vetores
+            if (isVector(values[0])) {
+                int slots = getVectorSlots(trim(values[0]));
+                values[0] = splitFirst(values[0], '[')[0];
+                integer_variables[trim(values[0]) + "[" + to_string(slots) + "]"] = stoi(resolveAssignment(values[1]));
+            }
+            else
+                integer_variables[values[0]] = stoi(resolveAssignment(values[1]));
         }
     }
     //Apenas declaração
@@ -194,6 +201,7 @@ void declareInt(vector<string> values, string type_identifier) {
             int slots = getVectorSlots(trim(type_identifier));
 
             for (int x = 0; x < slots; x++) {
+                string indice = to_string(x);
                 declareVariable("Int " + trim(values[0]) + "[" + resolveEvaluation(to_string(x)) + "];", false);
             }
         }
@@ -235,15 +243,23 @@ void declareDouble(vector<string> values, string type_identifier) {
             file_reference->seekg(scopes.top().back_loop_in_position);
             current_line = scopes.top().back_loop_in_line;
         }
-        else
-            double_variables[values[0]] = stod(resolveAssignment(values[1]));
+        else {
+            //Atualização de vetores
+            if (isVector(values[0])) {
+                int slots = getVectorSlots(trim(values[0]));
+                values[0] = splitFirst(values[0], '[')[0];
+                double_variables[trim(values[0]) + "[" + to_string(slots) + "]"] = stod(resolveAssignment(values[1]));
+            }
+            else
+                double_variables[values[0]] = stod(resolveAssignment(values[1]));
+        }
     }
     else {
         if (isVector(type_identifier)) {
             int slots = getVectorSlots(trim(type_identifier));
 
             for (int x = 0; x < slots; x++) {
-                declareVariable("Double " + trim(values[0]) + "[" + resolveEvaluation(to_string(x)) + "]" + " = 0.0;", false);
+                declareVariable("Double " + trim(values[0]) + "[" + resolveEvaluation(to_string(x)) + "];", false);
             }
         }
         else {
@@ -284,7 +300,16 @@ void declareString(vector<string> values, string type_identifier, string content
             current_line = scopes.top().back_loop_in_line;
         }
         else {
-            if (variableExists(values[1]) || values[1].find("+") != string::npos)
+            //Atualização de vetores
+            if (isVector(values[0])) {
+                int slots = getVectorSlots(trim(values[0]));
+                values[0] = splitFirst(values[0], '[')[0];
+
+                string string_value = resolveAssignmentString(values[1]);
+
+                string_variables[trim(values[0]) + "[" + to_string(slots) + "]"] = (string_value.substr(1, string_value.length() - 3));
+            }
+            else if (variableExists(values[1]) || values[1].find("+") != string::npos)
                 string_variables[values[0]] = resolveAssignmentString(values[1].substr(0, values[1].length() - 1));
             else if (values[1].find("\"") == 0 && values[1].rfind("\"") == values[1].length() - 2)
                 //Desconsidera as aspas e o ;
@@ -299,7 +324,7 @@ void declareString(vector<string> values, string type_identifier, string content
             int slots = getVectorSlots(trim(type_identifier));
 
             for (int x = 0; x < slots; x++) {
-                declareVariable("String " + trim(values[0]) + "[" + resolveEvaluation(to_string(x)) + "]" + " = \"\";", false);
+                declareVariable("String " + trim(values[0]) + "[" + resolveEvaluation(to_string(x)) + "];", false);
             }
         }
         else {
@@ -322,15 +347,23 @@ void declareBoolean(vector<string> values, string type_identifier) {
         }
         else if (values[1] != "true;" || values[1] != "false;")
             boolean_variables[values[0]] = stoi(resolveEvaluation(values[1]));
-        else
-            boolean_variables[values[0]] = false;
+        else {
+            //Atualização de vetores
+            if (isVector(values[0])) {
+                int slots = getVectorSlots(trim(values[0]));
+                values[0] = splitFirst(values[0], '[')[0];
+                boolean_variables[trim(values[0]) + "[" + to_string(slots) + "]"] = stoi(resolveEvaluation(values[1]));
+            }
+            else
+                boolean_variables[values[0]] = false;
+        }
     }
     else {
         if (isVector(type_identifier)) {
             int slots = getVectorSlots(trim(type_identifier));
 
             for (int x = 0; x < slots; x++) {
-                declareVariable("Boolean " + trim(values[0]) + "[" + resolveEvaluation(to_string(x)) + "]" + " = false;", false);
+                declareVariable("Boolean " + trim(values[0]) + "[" + resolveEvaluation(to_string(x)) + "];", false);
             }
         }
         else {
@@ -350,8 +383,16 @@ void declareChar(vector<string> values, string type_identifier) {
             else
                 throwError(errors.INCORRECT_TYPE, values[1]);
         }
-        else
-            char_variables[values[0]] = values[1][0];
+        else {
+            //Atualização de vetores
+            if (isVector(values[0])) {
+                int slots = getVectorSlots(trim(values[0]));
+                values[0] = splitFirst(values[0], '[')[0];
+                char_variables[trim(values[0]) + "[" + to_string(slots) + "]"] = resolveAssignment(values[1])[0];
+            }
+            else
+                char_variables[values[0]] = values[1][0];
+        }
     }
     else {
         if (isVector(type_identifier)) {
@@ -437,6 +478,14 @@ bool isVariableUpdate(string params) {
     if (var_value.size() == 2) {
         if (variableExists(trim(var_value[0])))
             return true;
+        else if (isVector(var_value[0])) {
+            int slots = getVectorSlots(trim(var_value[0]));
+            var_value[0] = splitFirst(var_value[0], '[')[0];
+            string declaration = var_value[0] + "[" + to_string(slots) + "]";
+            if (variableExists(declaration)) 
+                return true;
+            
+        }
         else {
             if (!isNativeFunction(params, true))
                 throwError(errors.VARIABLE_NOT_EXISTS, params);
@@ -451,6 +500,16 @@ bool isVariableUpdate(string params) {
 
 //Atualiza a variável
 void updateVariable(string params) {
+
+    if (params.find("=") != string::npos) {
+        string check_vector = splitFirst(params, '=')[0];
+        if (isVector(trim(check_vector))) {
+            int slots = getVectorSlots(trim(check_vector));
+            string name = trim(splitFirst(check_vector, '[')[0]);
+            string assignment = trim(splitLast(params, ']')[1]);
+            params = name + "[" + to_string(slots)+"]" + assignment;
+        }
+    }
 
     if (params.find("+=") != string::npos) {
         string var_name = splitFirst(params, '+')[0];

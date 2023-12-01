@@ -685,6 +685,8 @@ void interpreterLineInFor(string content, ifstream* file) {
                     file->seekg(scopes.top().back_loop_in_position);
                     current_line = scopes.top().back_loop_in_line;
                 }
+                else
+                    scopes.top().pop_last_variable();
             }
         }
         else if (c == '{' && !startsWith(scopes.top().scope_type, "condition") && !block_next_brace_count)

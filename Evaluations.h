@@ -5,7 +5,6 @@
 #include <stack>
 #include <string>
 
-#include "General.h"
 #include "Variables.h"
 #include "StringUtilities.h"
 using namespace std;
