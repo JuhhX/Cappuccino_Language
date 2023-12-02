@@ -1,0 +1,11 @@
+public static void ok(){
+	println("OK");
+}
+
+public static void not(){
+	println("NOT");
+}
+
+Int n = readInt();
+if(n == 0) ok();
+else not();

@@ -10,6 +10,7 @@ map<string, string> string_variables;
 vector<string> variables_names;
 
 stack<Scope> scopes;
+ifstream* file_reference;
 
 //Se encontrar uma variavel com este nome, executa a função f para ela;
 void variableExecute(string s, function<void(string)> f) {
@@ -165,24 +166,30 @@ void declareInt(vector<string> values, string type_identifier) {
         }
         else if (isCustomFunction(values[1], true)) {
             string line;
-            scopes.top().back_loop_in_position = (int)(file_reference->tellg());
-            executeCustomFunction(values[1]);
 
-            while (getline(*file_reference, line) && scopes.top().search_block_end_method) {
-                if (line.empty() || startsWith(line, "//")) continue;
-                if (!line.empty()) line = trim(line);
-
-                interpreterLineInMethod(line);
+            if (values[1][values[1].length() - 2] != ')') {
+                integer_variables[values[0]] = stoi(resolveAssignment(values[1]));
             }
+            else {
+                scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+                executeCustomFunction(values[1]);
 
-            if (scopes.top().current_return_type == "Int")
-                integer_variables[values[0]] = scopes.top().returned.returned_int;
-            else
-                throwError(errors.INCORRECT_TYPE, values[1]);
+                while (getline(*file_reference, line) && scopes.top().search_block_end_method) {
+                    if (line.empty() || startsWith(line, "//")) continue;
+                    if (!line.empty()) line = trim(line);
 
-            file_reference->clear();
-            file_reference->seekg(scopes.top().back_loop_in_position);
-            current_line = scopes.top().back_loop_in_line;
+                    interpreterLineInMethod(line);
+                }
+
+                if (scopes.top().current_return_type == "Int")
+                    integer_variables[values[0]] = scopes.top().returned.returned_int;
+                else
+                    throwError(errors.INCORRECT_TYPE, values[1]);
+
+                file_reference->clear();
+                file_reference->seekg(scopes.top().back_loop_in_position);
+                current_line = scopes.top().back_loop_in_line;
+            }
         }
         else {
             //Atualização de vetores
@@ -224,24 +231,30 @@ void declareDouble(vector<string> values, string type_identifier) {
         }
         else if (isCustomFunction(values[1], true)) {
             string line;
-            scopes.top().back_loop_in_position = (int)(file_reference->tellg());
-            executeCustomFunction(values[1]);
 
-            while (getline(*file_reference, line) && scopes.top().search_block_end_method) {
-                if (line.empty() || startsWith(line, "//")) continue;
-                if (!line.empty()) line = trim(line);
-
-                interpreterLineInMethod(line);
+            if (values[1][values[1].length() - 2] != ')') {
+                double_variables[values[0]] = stod(resolveAssignment(values[1]));
             }
+            else {
+                scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+                executeCustomFunction(values[1]);
 
-            if (scopes.top().current_return_type == "Double")
-                double_variables[values[0]] = scopes.top().returned.returned_double;
-            else
-                throwError(errors.INCORRECT_TYPE, values[1]);
+                while (getline(*file_reference, line) && scopes.top().search_block_end_method) {
+                    if (line.empty() || startsWith(line, "//")) continue;
+                    if (!line.empty()) line = trim(line);
 
-            file_reference->clear();
-            file_reference->seekg(scopes.top().back_loop_in_position);
-            current_line = scopes.top().back_loop_in_line;
+                    interpreterLineInMethod(line);
+                }
+
+                if (scopes.top().current_return_type == "Double")
+                    double_variables[values[0]] = scopes.top().returned.returned_double;
+                else
+                    throwError(errors.INCORRECT_TYPE, values[1]);
+
+                file_reference->clear();
+                file_reference->seekg(scopes.top().back_loop_in_position);
+                current_line = scopes.top().back_loop_in_line;
+            }
         }
         else {
             //Atualização de vetores

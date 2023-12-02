@@ -73,24 +73,28 @@
 - Agora o cappuccino é analisado por Rust
 - As variáveis após o FOR agora são removidas adequadamente
 - Adicionados vetores Inteiros
+- Adicionadas algumas restrições para nomes de váriaveis.
 
 01/12/2023
 - Adicionados vetores Double, String, Boolean e Char
+- resolveAssignment agora verifica valores de vetores.
+- Variaveis podem ser reatribuidas novamente usando metodos definidos no código
+
+02/12/2023
+- O analisador de código agora ignora blocos de single instruction corretamente.
+- Variáveis agora podem ser atribuidas com métodos
+- Indices de vetores agora podem ser definidos com operações ou retornos de métodos.
+- IF in line struction agora pode chamar métodos corretamente
 
 LISTA DO QUE FAZER
-- Rust deve ignorar blocos de single struction
+- Erro de chamar método em IF single_struction
+- Doubles não são retornados corretamente de métodos
 - Rust deve verificar os nomes das variaveis
 
-- resolves devem tratar vetores
-- resolves devem verificar métodos também (Metodos devem buscar os valores automaticamente ao invés de buscar quando mudar de linha)
-
+- Adicionar restrições para nomes de métodos.
 - Adicionar ++ e -- no resolveAssignment. Para que variaveis possam ser atribuidas com eles
 - Adicionar ++ e -- no começo de expressoes;
 - Adicionar quick sort e binary search para pesquisar elementos em vetores;
 - Ajustar FOR single Instruction
-- Adicionar restrições para nomes de variaveis e metodos;
 - Adicionar variante de METHOD
-- Adicionar vetores
 - Adicionar soma de strings para comparações booleanas.
-
-- METHODS não funcionam no IF single struction (Não há uma mudança de linha para que dê tempo do método ser chamado)

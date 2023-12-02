@@ -13,7 +13,7 @@
 
 using namespace std;
 
-static ifstream * file_reference;
+extern ifstream * file_reference;
 
 static string filename;
 static int current_line = 1;

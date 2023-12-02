@@ -68,6 +68,8 @@ string resolveAssignment(string params) {
     bool is_reading_parenthesis = false;
     int parenthesis_count = 0;
 
+    string method_name = "";
+
     //Separa os operadores dos numeros
     for (char c : params) {
         if (c == ' ' || c == ';' || isBooleanOperation(c)) continue;
@@ -76,6 +78,14 @@ string resolveAssignment(string params) {
             if (isOperation(to_string(c))) {
                 if (variableExists(temp))
                     numbers.push(stod(getVariableValue(temp, false)));
+                else if (isVector(temp)) {
+                    int slots = getVectorSlots(trim(temp));
+                    temp = splitFirst(temp, '[')[0];
+                    temp = temp + "[" + to_string(slots) + "]";
+
+                    if (variableExists(temp))
+                        numbers.push(stod(getVariableValue(temp, false)));
+                }
                 else
                     numbers.push(stod(temp.empty() ? "0" : temp));
                 operations.push(c);
@@ -85,6 +95,11 @@ string resolveAssignment(string params) {
                 if (c == '(') {
                     parenthesis_count++;
                     is_reading_parenthesis = true;
+
+                    if (isCustomFunction(temp + "()", true)) {
+                        method_name = temp + "(";
+                        temp = "";
+                    }
                 }
                 else
                     temp += c;
@@ -94,7 +109,32 @@ string resolveAssignment(string params) {
             if (c == ')') {
                 parenthesis_count--;
                 if (parenthesis_count == 0) {
-                    temp = resolveAssignment(temp);
+                    if (method_name != "") {
+                        string line;
+                        string to_execute = method_name + temp + ")";
+                        scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+                        executeCustomFunction(to_execute + ";");
+
+                        while (getline(*file_reference, line) && scopes.top().search_block_end_method) {
+                            if (line.empty() || startsWith(line, "//")) continue;
+                            if (!line.empty()) line = trim(line);
+
+                            interpreterLineInMethod(line);
+                        }
+
+                        if (scopes.top().current_return_type == "Int")
+                            temp = to_string(scopes.top().returned.returned_int);
+                        else if (scopes.top().current_return_type == "Double")
+                            temp = to_string(scopes.top().returned.returned_double);
+                        else
+                            throwError(errors.INCORRECT_TYPE, to_execute);
+
+                        file_reference->clear();
+                        file_reference->seekg(scopes.top().back_loop_in_position);
+                        current_line = scopes.top().back_loop_in_line;
+                    }
+                    else 
+                        temp = resolveAssignment(temp);
                     is_reading_parenthesis = false;
                 }
             }
@@ -105,11 +145,20 @@ string resolveAssignment(string params) {
         }
     }
 
-    if (!temp.empty())
+    if (!temp.empty()) {
         if (variableExists(temp))
             numbers.push(stod(getVariableValue(temp, false)));
+        else if (isVector(temp)) {
+            int slots = getVectorSlots(trim(temp));
+            temp = splitFirst(temp, '[')[0];
+            temp = temp + "[" + to_string(slots) + "]";
+
+            if (variableExists(temp))
+                numbers.push(stod(getVariableValue(temp, false)));
+        }
         else
             numbers.push(stod(temp));
+    }
 
     if (numbers.size() == 1 && operations.empty())
         return to_string(numbers.top());

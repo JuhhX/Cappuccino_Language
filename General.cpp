@@ -91,11 +91,13 @@ bool isParenthesesOk(string content) {
 bool isCustomFunction(string content, bool ignore_error) {
     if (isParenthesesOk(content)) {
         vector<string> command = splitFirst(content, '(');
-        if (custom_functions.count(trim(command[0])))
-            return true;
-        else {
-            if(!ignore_error)
-                throwError(errors.UNDEFINED_FUNCTION, content);
+        if (!command[0].empty()) {
+            if (custom_functions.count(trim(command[0])))
+                return true;
+            else {
+                if(!ignore_error)
+                    throwError(errors.UNDEFINED_FUNCTION, content);
+            }
         }
     }
     else {
@@ -155,7 +157,24 @@ void executeConditionBlock(string params){
 
                 string resolved_condition = resolveEvaluation(in_line[0]);
                 if (resolved_condition == "1" && in_line_command != "{" && !satisfied) {
-                    interpreterLine(in_line_command);
+                    if (isCustomFunction(in_line_command, true)) {
+                        string line;
+                        scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+                        executeCustomFunction(in_line_command);
+
+                        while (getline(*file_reference, line) && scopes.top().search_block_end_method) {
+                            if (line.empty() || startsWith(line, "//")) continue;
+                            if (!line.empty()) line = trim(line);
+
+                            interpreterLineInMethod(line);
+                        }
+
+                        file_reference->clear();
+                        file_reference->seekg(scopes.top().back_loop_in_position);
+                        current_line = scopes.top().back_loop_in_line;
+                    }
+                    else 
+                        interpreterLine(in_line_command);
                     scopes.top().scope_type = "condition_in_line";
                     scopes.top().satisfied_condition = true;
                 }
@@ -259,13 +278,16 @@ void executeConditionBlock(string params){
                 scopes.top().satisfied_condition = true;*/
 
                 if (isCustomFunction(in_line_command, true)) {
+                    string line;
                     scopes.top().back_loop_in_position = (int)(file_reference->tellg());
-                    scopes.top().back_loop_in_line = current_line;
+                    executeCustomFunction(in_line_command);
 
-                    interpreterLine(in_line_command);
+                    while (getline(*file_reference, line) && scopes.top().search_block_end_method) {
+                        if (line.empty() || startsWith(line, "//")) continue;
+                        if (!line.empty()) line = trim(line);
 
-                    scopes.top().~Scope();
-                    scopes.pop();
+                        interpreterLineInMethod(line);
+                    }
 
                     file_reference->clear();
                     file_reference->seekg(scopes.top().back_loop_in_position);
@@ -780,22 +802,6 @@ void interpreterLineInMethod(string content) {
                     file_reference->clear();
                     file_reference->seekg(scopes.top().back_loop_in_position);
                     current_line = scopes.top().back_loop_in_line;
-                }
-
-                string variable_waiting = scopes.top().variable_wait_value;
-                if (variable_waiting != "") {
-                    string value;
-                    variable_waiting = split(variable_waiting, "=")[0];
-
-                    if (return_type == "Int")
-                        value = to_string(returned_value->returned_int);
-                    else if (return_type == "Double")
-                        value = to_string(returned_value->returned_double);
-                    else if (return_type == "String")
-                        value = ("\"" + returned_value_string + "\"");
-
-
-                    declareVariable(variable_waiting + " = " + value + ";", false);
                 }
 
                 scopes.top().current_return_type = return_type;

@@ -144,10 +144,12 @@ bool isNativeFunction(string content, bool ignore_error) {
     if (!read_without_execute) {
         if (isParenthesesOk(content)) {
             vector<string> command = splitFirst(content, '(');
-            if (functions.count(trim(command[0])))
-                return true;
-            else if (!ignore_error)
-                throwError(errors.UNDEFINED_FUNCTION, content);
+            if (!command[0].empty()) {
+                if (functions.count(trim(command[0])))
+                    return true;
+                else if (!ignore_error)
+                    throwError(errors.UNDEFINED_FUNCTION, content);
+            }
         }
         else {
             if (!ignore_error)
