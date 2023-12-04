@@ -85,8 +85,15 @@
 - Variáveis agora podem ser atribuidas com métodos
 - Indices de vetores agora podem ser definidos com operações ou retornos de métodos.
 - IF in line struction agora pode chamar métodos corretamente
+- Adicionado comando typeof que obtem o tipo de uma variável
+
+04/12/2023
+- Adicionadas classes
+- Classes podem ser atribuidas e manipuladas suas propriedades
+- Adicionados métodos a classes
 
 LISTA DO QUE FAZER
+- Classes devem permitir manipulação de seus atributos
 - Erro de chamar método em IF single_struction
 - Doubles não são retornados corretamente de métodos
 - Rust deve verificar os nomes das variaveis

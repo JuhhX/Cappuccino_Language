@@ -28,6 +28,8 @@ static struct ErrorsType {
     const string NAME_NOT_ALLOWED = "Error: This name is not allowed";
     const string MISSING_PARAMETERS = "Error: It's missing some parameter(s)";
     const string ERRORS_ANALYZING = "Error: There was an error while analyzing the code";
+    const string CLASS_DOESNT_CONTAINS_VARIABLE = "Error: atributte not found.";
+    const string PROPERTY_INACCESSIBLE = "Error: This property is not accessible.";
 } errors;
 
 #endif // !UTILITIES

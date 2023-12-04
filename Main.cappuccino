@@ -1,11 +1,13 @@
-public static void ok(){
-	println("OK");
+class Pessoa {
+	public String nome = "Testei aqui";
+	public Int idade = 13;
+
+	public Void setName(String n){
+		println(n);
+		println("OUTRA COISA");
+	}
 }
 
-public static void not(){
-	println("NOT");
-}
-
-Int n = readInt();
-if(n == 0) ok();
-else not();
+Pessoa p;
+p.setName("ABC");
+printf("{p.nome}");

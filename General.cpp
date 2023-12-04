@@ -5,6 +5,9 @@
 
 using namespace std;
 
+map<string, size_t> class_model;
+map<string, Object> classes_variables;
+
 //Dispara erros
 void throwError(string error_type, string line_content) {
     cout << endl << colors.RED << (filename + ":" + to_string(current_line) + ": ") << error_type << colors.RESET << endl;
@@ -63,6 +66,62 @@ void executeCustomFunction(string content) {
         }
         else {
             throwError(errors.MISSING_PARAMETERS, custom_functions[trim(command_parameters[0])].params);
+        }
+    }
+}
+
+//Executa métodos definidos no código
+void executeCustomFunction(string content, Object c) {
+    vector<string> command_parameters = splitFirst(content, '(');
+    string method_name = trim(splitFirst(command_parameters[0], '.')[1]);
+
+    //Sem parametros
+    if (startsWith(command_parameters[1], ")") && c.custom_functions[trim(method_name)].params == "") {
+
+        scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+        scopes.top().back_loop_in_line = current_line;
+
+        Scope new_scope;
+        scopes.push(new_scope);
+
+        file_reference->clear();
+        file_reference->seekg(c.custom_functions[trim(method_name)].start_in_line);
+        current_line = static_cast<int>(c.custom_functions[trim(method_name)].start_in_line);
+
+        scopes.top().method_reference = &c.custom_functions[trim(method_name)];
+        scopes.top().search_block_end_method = true;
+        scopes.top().execute_block = true;
+        scopes.top().block_count++;
+    }
+    //Com parametros
+    else {
+
+        scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+        scopes.top().back_loop_in_line = current_line;
+        command_parameters[1] = command_parameters[1].substr(0, command_parameters[1].length() - 2);
+
+        vector<string> informed_params = split(command_parameters[1], ',');
+        vector<string> method_params = split(c.custom_functions[trim(method_name)].params, ',');
+
+        if (informed_params.size() == method_params.size()) {
+            Scope new_scope;
+            scopes.push(new_scope);
+
+            for (int x = 0; x < method_params.size(); x++) {
+                declareVariable(trim(method_params[x]) + "=" + trim(informed_params[x]) + ";", false);
+            }
+
+            file_reference->clear();
+            file_reference->seekg(c.custom_functions[trim(method_name)].start_in_line);
+            current_line = static_cast<int>(c.custom_functions[trim(method_name)].start_in_line);
+
+            scopes.top().method_reference = &c.custom_functions[trim(method_name)];
+            scopes.top().search_block_end_method = true;
+            scopes.top().execute_block = true;
+            scopes.top().block_count++;
+        }
+        else {
+            throwError(errors.MISSING_PARAMETERS, c.custom_functions[trim(command_parameters[0])].params);
         }
     }
 }
@@ -525,6 +584,180 @@ void registerMethod(string params) {
     custom_functions[new_function.name] = new_function;
 }
 
+//
+bool isClassDeclaration(string params) {
+    return startsWith(params, "class");
+}
+
+//
+void registerClass(string params) {
+    //Escopo na mesma linha
+    vector<string> class_pieces = splitFirst(params, ' ');
+
+    if (endsWith(trim(class_pieces[1]), "{")) {
+        //Armazena nome e onde a classe começa
+        string class_name = class_pieces[1].substr(0, class_pieces[1].length() - 1);
+        class_model[trim(class_name)] = file_reference->tellg();
+
+        //Ignora a classe
+        Scope new_scope;
+        scopes.push(new_scope);
+
+        scopes.top().execute_block = false;
+        scopes.top().search_block_end_class = true;
+        scopes.top().block_count++;
+    }
+    
+}
+
+//
+bool isObjectDeclaration(string content) {
+    vector<string> declaration_pieces = splitFirst(content, ' ');
+    if (declaration_pieces.size() == 2) {
+        return (class_model.count(trim(declaration_pieces[0])));
+    }   
+    return false;
+}
+
+//
+void declareObject(string content, bool ignore_errors) {
+    //Sem o new
+    vector<string> var_pieces = splitFirst(content, ' ');
+    string name = var_pieces[1];
+    name = name.substr(0, name.length() - 1);
+    string type = var_pieces[0];
+
+    Object new_class;
+    new_class.type_name = type;
+
+    if (!variableExists(name)) {
+        string line;
+        scopes.top().scope_variables.push_back(name);
+
+        scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+
+        Scope new_scope;
+        scopes.push(new_scope);
+
+        file_reference->clear();
+        file_reference->seekg(class_model[trim(type)]);
+
+        scopes.top().search_block_end_class = true;
+        scopes.top().execute_block = true;
+        scopes.top().block_count++;
+
+        while (getline(*file_reference, line) && scopes.top().search_block_end_class) {
+            if (line.empty() || startsWith(line, "//")) continue;
+            if (!line.empty()) line = trim(line);
+
+            interpreterLineInClass(line, &new_class);
+        }
+
+        file_reference->clear();
+        file_reference->seekg(scopes.top().back_loop_in_position);
+        current_line = scopes.top().back_loop_in_line;
+
+        vector<string> p = splitFirst(content, ' ');
+
+        //Definido porque o escopo precisa ter controle dessa variavel
+        if (p.size() == 2) {
+
+            vector<string> values;
+            if (p[1].find("=") != string::npos) {
+                values = splitFirst(p[1], '=');
+                values[0] = trim(values[0]);
+                values[1] = trim(values[1]);
+            }
+            else
+                values.push_back(trim(p[1].substr(0, p[1].length() - 1)));
+            variables_names.push_back(values[0]);
+        }
+
+    }
+    else {
+        //Disparar erro
+    }
+    classes_variables[name] = new_class;
+}
+
+// 
+bool isObjectVariableUpdate(string content) {
+    vector<string> variable_parts = splitFirst(content, '.');
+
+    if (variable_parts.size() == 2) {
+        if (variable_parts[1].find("=") != string::npos && classes_variables.count(variable_parts[0])) 
+            return true;
+    }
+    
+    return false;
+}
+
+void updateObjectVariable(string content) {
+    vector<string> variable_parts = splitFirst(content, '.');
+
+    if (variable_parts.size() == 2) {
+        if (variable_parts[1].find("=") != string::npos && classes_variables.count(trim(variable_parts[0]))) {
+            string declaration = classes_variables[trim(variable_parts[0])].getTypeOfVariable(trim(splitFirst(variable_parts[1], '=')[0]));
+            string property_name = trim(splitFirst(variable_parts[1], '=')[0]);
+
+            if (classes_variables[trim(variable_parts[0])].isPublic(property_name)) {
+                classes_variables[trim(variable_parts[0])].declareVariable(declaration + " " + variable_parts[1], "public", true);
+            }
+            else {
+                throwError(errors.PROPERTY_INACCESSIBLE, content);
+            }
+
+        }
+    }
+}
+
+//
+bool isObjectMethod(string content) {
+    vector<string> variable_parts = splitFirst(content, '.');
+
+    if (variable_parts.size() == 2) {
+        if (isParenthesesOk(content) && classes_variables.count(variable_parts[0]))
+            return true;
+    }
+
+    return false;
+}
+
+//
+void executeObjectMethod(string content) {
+    vector<string> methods_parts = splitFirst(content, '.');
+
+    if (methods_parts.size() == 2) {
+        if (isParenthesesOk(content) && classes_variables.count(methods_parts[0])) {
+            string method_name = trim(splitFirst(methods_parts[1], '(')[0]);
+
+            if (classes_variables[trim(methods_parts[0])].isPublic(method_name)) {
+                string line;
+                scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+                scopes.top().isClassMethod = true;
+                executeCustomFunction(content, classes_variables[trim(methods_parts[0])]);
+
+                while (getline(*file_reference, line) && scopes.top().search_block_end_method) {
+                    if (line.empty() || startsWith(line, "//")) continue;
+                    if (!line.empty()) line = trim(line);
+
+                    interpreterLineInMethod(line);
+                }
+
+                file_reference->clear();
+                file_reference->seekg(scopes.top().back_loop_in_position);
+                current_line = scopes.top().back_loop_in_line;
+                scopes.top().isClassMethod = false;
+
+            }
+            else {
+                throwError(errors.PROPERTY_INACCESSIBLE, content);
+            }
+        }
+            
+    }
+}
+
 //Executa a função adequada para cada linha
 void interpreterLine(string content) {
 
@@ -543,15 +776,26 @@ void interpreterLine(string content) {
         else if (isMethodDeclaration(content))
             registerMethod(content);
 
+        else if (isClassDeclaration(content))
+            registerClass(content);
+
         else if (isVariableDeclaration(content))
             declareVariable(content, false);
+        else if (isObjectDeclaration(content))
+            declareObject(content, false);
+
+        else if (isObjectVariableUpdate(content))
+            updateObjectVariable(content);
 
         else if (isVariableUpdate(content) && !read_without_execute)
             updateVariable(content);
+        else if (isObjectMethod(content))
+            executeObjectMethod(content);
         else if (isCustomFunction(content, true) && !read_without_execute)
             executeCustomFunction(content);
         else if (isNativeFunction(content, false) && !read_without_execute)
             executeNativeFunction(content);
+
     }
 }
 
@@ -590,10 +834,14 @@ void interpreterLineAndFindEnd(string content) {
         else if (isForLoopBlock(content))
             executeForBlock(content);
 
-        else if (content[content.length() - 1] != ';')
-            throwError(errors.SEMICOLON, content);
         else if (isVariableDeclaration(content) && !read_without_execute)
             declareVariable(content, false);
+        else if (isObjectDeclaration(content))
+            declareObject(content, false);
+
+        else if (isObjectVariableUpdate(content))
+            updateObjectVariable(content);
+
         else if (isVariableUpdate(content) && !read_without_execute)
             updateVariable(content);
         else if (isCustomFunction(content, true) && !read_without_execute)
@@ -623,10 +871,14 @@ void interpreterLineInWhile(string content, ifstream * file) {
             block_next_brace_count = true;
         }
 
-        else if (content[content.length() - 1] != ';')
-            throwError(errors.SEMICOLON, content);
         else if (isVariableDeclaration(content) && !read_without_execute)
             declareVariable(content, false);
+        else if (isObjectDeclaration(content))
+            declareObject(content, false);
+
+        else if (isObjectVariableUpdate(content))
+            updateObjectVariable(content);
+
         else if (isVariableUpdate(content) && !read_without_execute)
             updateVariable(content);
         else if (isCustomFunction(content, true) && !read_without_execute)
@@ -678,11 +930,14 @@ void interpreterLineInFor(string content, ifstream* file) {
             block_next_brace_count = true;
         }
 
-        else if (content[content.length() - 1] != ';')
-            throwError(errors.SEMICOLON, content);
-
         else if (isVariableDeclaration(content) && !read_without_execute)
             declareVariable(content, false);
+        else if (isObjectDeclaration(content))
+            declareObject(content, false);
+
+        else if (isObjectVariableUpdate(content))
+            updateObjectVariable(content);
+
         else if (isVariableUpdate(content) && !read_without_execute)
             updateVariable(content);
         else if (isCustomFunction(content, true) && !read_without_execute)
@@ -769,15 +1024,21 @@ void interpreterLineInMethod(string content) {
             block_next_brace_count = true;
         }
 
-        else if (content[content.length() - 1] != ';')
-            throwError(errors.SEMICOLON, content);
+        /*else if (content[content.length() - 1] != ';')
+            throwError(errors.SEMICOLON, content);*/
         else if (isVariableDeclaration(content) && !read_without_execute)
             declareVariable(content, false);
+        else if (isObjectDeclaration(content))
+            declareObject(content, false);
+
+        else if (isObjectVariableUpdate(content))
+            updateObjectVariable(content);
+
         else if (isVariableUpdate(content) && !read_without_execute)
             updateVariable(content);
         else if (isCustomFunction(content, true) && !read_without_execute)
             executeCustomFunction(content);
-        else if (isNativeFunction(content, false) && !read_without_execute)
+        else if (isNativeFunction(content, true) && !read_without_execute)
             executeNativeFunction(content);
     }
 
@@ -812,6 +1073,64 @@ void interpreterLineInMethod(string content) {
         else if (c == '{' && scopes.top().scope_type != "condition_single" && !ignore_line && !block_next_brace_count)
             scopes.top().block_count++;
     }
+}
+
+//
+void interpreterLineInClass(string content) {
+    for (char c : content) {
+        if (c == ' ') continue;
+
+        if (c == '}') {
+            scopes.top().block_count--;
+            if (scopes.top().block_count == 0) {
+
+
+                //Limpa o escopo
+                scopes.top().search_block_end_class = false;
+                scopes.top().execute_block = false;
+                scopes.top().~Scope();
+                scopes.pop();
+
+            }
+        }
+        else if (c == '{')
+            scopes.top().block_count++;
+    }
+}
+
+//
+void interpreterLineInClass(string content, Object * c) {
+    interpreterLineInClass(content);
+
+    if (scopes.top().execute_block && trim(content) != "}" && trim(content) != "{" && !(content.empty() || content == "\t")) {
+        vector<string> declaration_pieces = splitFirst(content, ' ');
+
+        if (declaration_pieces.size() > 1) {
+
+            string accessibility = trim(declaration_pieces[0]);
+
+            //Ignorar variaveis dentro de métodos
+
+            if (endsWith(declaration_pieces[1], ";")) {
+                if (isVariableDeclaration(content) && !read_without_execute) {
+                    if (scopes.top().isClassMethod)
+                        declareVariable(content, false);
+                }
+                else if (isNativeFunction(content, true) && !read_without_execute) {
+                    if (scopes.top().isClassMethod)
+                        executeNativeFunction(content);
+                }
+                else {
+                    if(accessibility == "public" || accessibility == "private")
+                        c->declareVariable(declaration_pieces[1], accessibility, false);
+                }
+            }
+            else if (isParenthesesOk(content)) {
+                c->declareMethod(content);
+            }
+        }
+    }
+
 }
 
 //Retorna o nome do arquivo main
@@ -850,6 +1169,9 @@ void readFile(string code_name) {
                 }
                 else if (scopes.top().search_block_end_method) {    
                     interpreterLineInMethod(trim(content));
+                }
+                else if (scopes.top().search_block_end_class) {    
+                    interpreterLineInClass(trim(content));
                 }
                 else 
                     interpreterLine(content);

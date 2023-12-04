@@ -2,6 +2,12 @@
 #include "General.h"
 
 
+//Comando para pegar o valor de uma variável
+void typeof(string params) {
+    scopes.top().returned_string = getTypeOfVariable(params);
+    scopes.top().current_return_type = "String";
+}
+
 //Comando de saída
 void print(string params) {
 
@@ -170,4 +176,5 @@ void initializeFunctions() {
     functions["readDouble"] = readDouble;
     functions["readBoolean"] = readBoolean;
     functions["readChar"] = readChar;
+    functions["typeof"] = typeof;
 }

@@ -6,6 +6,7 @@ map<string, double> double_variables;
 map<string, bool> boolean_variables;
 map<string, char> char_variables;
 map<string, string> string_variables;
+//map<string, Object> classes_variables;
 
 vector<string> variables_names;
 
@@ -50,6 +51,23 @@ string getVariableValue(string s, bool ignore_throw) {
         returned = to_string(boolean_variables[s]);
     else if (char_variables.count(s))
         returned = (char(char_variables[s]));
+    else if (s.find(".") != string::npos) {
+        vector<string> object_name = splitFirst(s, '.');
+        
+        if (classes_variables.count(trim(object_name[0]))) {
+            if (classes_variables[object_name[0]].isPublic(trim(object_name[1])) || scopes.top().isClassMethod) {
+                returned = classes_variables[object_name[0]].getVariableValue(trim(object_name[1]));
+            }
+            else {
+                throwError(errors.PROPERTY_INACCESSIBLE, s);
+            }
+        }
+        else if(!ignore_throw) {
+            throwError(errors.VARIABLE_NOT_EXISTS, s);
+            throw - 1;
+        }
+
+    }
     else if (!ignore_throw) {
         throwError(errors.VARIABLE_NOT_EXISTS, s);
         throw - 1;
@@ -62,6 +80,9 @@ string getVariableValue(string s, bool ignore_throw) {
 bool variableExists(string s) {
     if (s.find(";") != string::npos)
         s = s.substr(0, s.length() - 1);
+
+    if (s.find(".") != string::npos)
+        s = trim(splitFirst(s, '.')[0]);
 
     for (int x = 0; x < variables_names.size(); x++) {
         if (variables_names[x] == s)
@@ -124,7 +145,7 @@ string getTypeOfData(string s) {
     return returned;
 }
 
-//Verifica se uma string está sendo declarada
+//Verifica se uma variável está sendo declarada
 bool isVariableDeclaration(string content) {
     return content.find("Int") == 0 || content.find("Double") == 0 || content.find("String") == 0 || content.find("Boolean") == 0 || content.find("Char") == 0;
 }

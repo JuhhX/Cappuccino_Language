@@ -2,6 +2,8 @@
 
 string trim(string s) {
 
+    if (s.empty() || s == "\t") return s;
+
 	while (s[0] == ' ' || s[0] == '\t')
 		s = s.substr(1, s.size());
 
@@ -125,11 +127,13 @@ string resolveFormatExpression(string params) {
         if (variableExists(params + "[" + to_string(slots) + "]")) {
             return (getVariableValue(params + "[" + to_string(slots) + "]", true));
         }
+        return "";
     }
     else if (variableExists(params))
         return (getVariableValue(params, true));
     else
         return resolveEvaluation(params);
+    return "";
 }
 
 //Formata a string com variaveis dentro
