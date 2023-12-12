@@ -304,6 +304,7 @@ class Object {
                 private_symbols.push_back(new_function.name);
 
             this->custom_functions[new_function.name] = new_function;
+
         }
 
         bool isPublic(string name) {

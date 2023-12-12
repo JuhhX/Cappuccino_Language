@@ -92,8 +92,18 @@
 - Classes podem ser atribuidas e manipuladas suas propriedades
 - Adicionados métodos a classes
 
+12/11/2023
+- Classes agora podem ser manipuladas pelos métodos
+- Métodos de classes podem interagir com código
+- Adicionadas conversões entre tipos
+- Adicionado método sleep e clear console
+
 LISTA DO QUE FAZER
-- Classes devem permitir manipulação de seus atributos
+- RUST deve ignorar comentários
+- Permitir os conversores converterem retorno de métodos e expressões aninhadas
+- Métodos de classe devem ter acesso a atributos privadas
+- Classes estão sem acesso a métodos nativos
+- RUST deve verificar se as variaveis foram usadas ou não
 - Erro de chamar método em IF single_struction
 - Doubles não são retornados corretamente de métodos
 - Rust deve verificar os nomes das variaveis

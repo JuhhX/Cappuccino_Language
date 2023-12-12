@@ -1,51 +1,51 @@
-class Person{
-	public String name;
-	public Int age;
-	public Double height;
+class Pessoa{
+	public String nome;
+	public Int idade;
 
-	public Void setName(String n){
-		this.name = n;
+	public Void Pessoa(String n, Int i){
+		this.nome = n;
+		this.idade = i;
 	}
 
-	public Void setAge(Int a){
-		this.age = a;
-	}	
-
-	public Void setHeight(Double h){
-		this.height = h;
-	}
-
-	public String getName(){
-		return this.name;
-	}
-
-	public Int getAge(){
-		return this.age;
-	}
-
-	public Double getHeight(){
-		return this.height;
-	}
-
-	public Void showInfos(){
-		printf("NOME: {this.name}\nIDADE: {this.age}\nALTURA: {this.height}");
+	public Void informacoes(){
+		printf("Nome: {this.nome}\nIdade: {this.idade}\n\n");
 	}
 }
 
-Person p;
+Pessoa p1;
+Pessoa p2;
+Pessoa p3;
 
-println("Digite o nome da pessoa: \n");
-String nome = "CESAR";
-p.setName(nome);
+println("=== CADASTRAR PESSOAS ===");
 
-println("\nDigite a idade: \n");
-Int idade = 13;
-p.setAge(idade);
+for(Int x = 0; x < 3; x++){
+	String nome;
+	Int idade;
 
-println("\nDigite a altura: \n");
-Double altura = 1513;
-p.setHeight(altura);
+	printf("Digite o nome da pessoa {x+1}:");
+	nome = readLine();
+	printf("Digite a idade da pessoa {x+1}:");
+	idade = readInt();
+	println("");
 
-println("");
+	if(x == 0){
+		p1.Pessoa(nome, idade);
+	}
+	else if(x == 1){
+		p2.Pessoa(nome, idade);
+	}
+	else{
+		p3.Pessoa(nome, idade);
+	}
+}
 
-p.showInfos();
+println("OK");
+sleep(2);
+clear();
+println("=== PESSOAS CADASTRADAS ===");
+sleep(1);
+p1.informacoes();
+sleep(1);
+p2.informacoes();
+sleep(1);
+p3.informacoes();

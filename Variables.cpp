@@ -230,7 +230,7 @@ void declareInt(vector<string> values, string type_identifier) {
                 current_line = scopes.top().back_loop_in_line;
             }
         }
-        else if (values[1].find(".") != string::npos) {
+        else if (values[1].find(".") != string::npos && !(getTypeOfData(values[1]) == "Double")) {
             vector<string> object_name = splitFirst(values[1], '.');
 
             if (classes_variables.count(trim(object_name[0]))) {
@@ -328,7 +328,7 @@ void declareDouble(vector<string> values, string type_identifier) {
                 current_line = scopes.top().back_loop_in_line;
             }
         }
-        else if (values[1].find(".") != string::npos) {
+        else if (values[1].find(".") != string::npos && !(getTypeOfData(values[1]) == "Double")) {
             vector<string> object_name = splitFirst(values[1], '.');
 
             if (classes_variables.count(trim(object_name[0]))) {
@@ -417,7 +417,7 @@ void declareString(vector<string> values, string type_identifier, string content
             file_reference->seekg(scopes.top().back_loop_in_position);
             current_line = scopes.top().back_loop_in_line;
         }
-        else if (values[1].find(".") != string::npos) {
+        else if (values[1].find(".") != string::npos && !(getTypeOfData(values[1]) == "Double")) {
             vector<string> object_name = splitFirst(values[1], '.');
 
             if (classes_variables.count(trim(object_name[0]))) {
@@ -489,6 +489,8 @@ void declareBoolean(vector<string> values, string type_identifier) {
     if (values.size() == 2) {
         if (values[1] == "true;")
             boolean_variables[values[0]] = true;
+        else if (values[1] == "false;")
+            boolean_variables[values[0]] = false;
         else if (isNativeFunction(values[1], true)) {
             executeNativeFunction(values[1]);
             if (scopes.top().current_return_type == "Boolean")
@@ -496,7 +498,7 @@ void declareBoolean(vector<string> values, string type_identifier) {
             else
                 throwError(errors.INCORRECT_TYPE, values[1]);
         }
-        else if (values[1].find(".") != string::npos) {
+        else if (values[1].find(".") != string::npos && !(getTypeOfData(values[1]) == "Double")) {
             vector<string> object_name = splitFirst(values[1], '.');
 
             if (classes_variables.count(trim(object_name[0]))) {

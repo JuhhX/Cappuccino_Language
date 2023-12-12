@@ -670,6 +670,8 @@ void interpreterLineAndFindEnd(string content) {
 
         else if (isVariableUpdate(content) && !read_without_execute)
             updateVariable(content);
+        else if (isObjectMethod(content))
+            executeObjectMethod(content);
         else if (isCustomFunction(content, true) && !read_without_execute)
             executeCustomFunction(content);
         else if (isNativeFunction(content, false) && !read_without_execute)
@@ -766,6 +768,8 @@ void interpreterLineInFor(string content, ifstream* file) {
 
         else if (isVariableUpdate(content) && !read_without_execute)
             updateVariable(content);
+        else if (isObjectMethod(content))
+            executeObjectMethod(content);
         else if (isCustomFunction(content, true) && !read_without_execute)
             executeCustomFunction(content);
         else if (isNativeFunction(content, false) && !read_without_execute)
@@ -804,6 +808,7 @@ void interpreterLineInMethod(string content) {
 
     bool ignore_line = isMethodDeclaration(content);
     bool block_next_brace_count = false;
+    bool is_native_function = false;
 
     if (startsWith(content, "return") && endsWith(content, ";") && scopes.top().execute_block) {
         vector<string> returned_pieces = splitFirst(content, ' ');
@@ -821,20 +826,30 @@ void interpreterLineInMethod(string content) {
         if (return_type == "Null")
             return_type = getTypeOfData(returned_pieces[1].substr(0, returned_pieces[1].length() - 1));
 
+        if (return_type == "Null") {
+            if (isNativeFunction(returned_pieces[1], true)) {
+                executeNativeFunction(returned_pieces[1]);
+                return_type = scopes.top().current_return_type;
+                is_native_function = true;
+            }
+        }
+
         if (return_type == scopes.top().method_reference->return_type) {
-            scopes.top().current_return_type = return_type;
+            if (!is_native_function) {
+                scopes.top().current_return_type = return_type;
             
-            if (return_type == "Int")
-                scopes.top().returned.returned_int = stoi(resolveEvaluation(returned_pieces[1].substr(0, returned_pieces[1].length() - 1)));
-            else if (return_type == "Double")
-                scopes.top().returned.returned_double = stod(resolveEvaluation(returned_pieces[1].substr(0, returned_pieces[1].length() - 1)));
-            else if(return_type == "Boolean")
-                scopes.top().returned.returned_boolean = stoi(resolveEvaluation(returned_pieces[1].substr(0, returned_pieces[1].length() - 1)));
-            else if (return_type == "String")
-                scopes.top().returned_string = resolveEvaluation(returned_pieces[1].substr(0, returned_pieces[1].length() - 1));
-            else if(return_type == "Char")
-                scopes.top().returned.returned_char = resolveEvaluation(returned_pieces[1].substr(0, returned_pieces[1].length() - 1))[0];
-            //Adicionar os outros tipos VOID e etc
+                if (return_type == "Int")
+                    scopes.top().returned.returned_int = stoi(resolveEvaluation(returned_pieces[1].substr(0, returned_pieces[1].length() - 1)));
+                else if (return_type == "Double")
+                    scopes.top().returned.returned_double = stod(resolveEvaluation(returned_pieces[1].substr(0, returned_pieces[1].length() - 1)));
+                else if(return_type == "Boolean")
+                    scopes.top().returned.returned_boolean = stoi(resolveEvaluation(returned_pieces[1].substr(0, returned_pieces[1].length() - 1)));
+                else if (return_type == "String")
+                    scopes.top().returned_string = resolveEvaluation(returned_pieces[1].substr(0, returned_pieces[1].length() - 1));
+                else if(return_type == "Char")
+                    scopes.top().returned.returned_char = resolveEvaluation(returned_pieces[1].substr(0, returned_pieces[1].length() - 1))[0];
+                //Adicionar os outros tipos VOID e etc
+            }
         }
         else {
             throwError(errors.INCORRECT_TYPE, content);
@@ -962,7 +977,9 @@ void interpreterLineInClass(string content, Object * c) {
                 }
             }
             else if (isParenthesesOk(content)) {
-                c->declareMethod(content);
+                if (!startsWith(content, "for") && !startsWith(content, "while") && !startsWith(content, "if") && !startsWith(content, "else")) {
+                    c->declareMethod(content);
+                }
             }
         }
     }
