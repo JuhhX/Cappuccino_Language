@@ -6,9 +6,11 @@ map<string, double> double_variables;
 map<string, bool> boolean_variables;
 map<string, char> char_variables;
 map<string, string> string_variables;
-//map<string, Object> classes_variables;
+map<string, Object> classes_variables;
 
 vector<string> variables_names;
+
+map<string, size_t> class_model;
 
 stack<Scope> scopes;
 ifstream* file_reference;
@@ -55,11 +57,27 @@ string getVariableValue(string s, bool ignore_throw) {
         vector<string> object_name = splitFirst(s, '.');
         
         if (classes_variables.count(trim(object_name[0]))) {
-            if (classes_variables[object_name[0]].isPublic(trim(object_name[1])) || scopes.top().isClassMethod) {
-                returned = classes_variables[object_name[0]].getVariableValue(trim(object_name[1]));
+            if (classes_variables[object_name[0]].existsVariable(trim(object_name[1]))) {
+                if (classes_variables[object_name[0]].isPublic(trim(object_name[1])) || scopes.top().isClassMethod) {
+                    returned = classes_variables[object_name[0]].getVariableValue(trim(object_name[1]));
+                }
+                else {
+                    throwError(errors.PROPERTY_INACCESSIBLE, s);
+                }
             }
-            else {
-                throwError(errors.PROPERTY_INACCESSIBLE, s);
+            //ISSO TEM Q ESTAR EM OUTRO METODO
+            else if (isObjectMethod(s)) {
+                executeObjectMethod(s);
+                if(scopes.top().current_return_type == "String")
+                    returned = scopes.top().returned_string;
+                else if(scopes.top().current_return_type == "Int")
+                    returned = to_string(scopes.top().returned.returned_int);
+                else if(scopes.top().current_return_type == "Double")
+                    returned = to_string(scopes.top().returned.returned_double);
+                else if(scopes.top().current_return_type == "Boolean")
+                    returned = to_string(scopes.top().returned.returned_boolean);
+                else if(scopes.top().current_return_type == "Char")
+                    returned = to_string(scopes.top().returned.returned_char);
             }
         }
         else if(!ignore_throw) {
@@ -212,6 +230,39 @@ void declareInt(vector<string> values, string type_identifier) {
                 current_line = scopes.top().back_loop_in_line;
             }
         }
+        else if (values[1].find(".") != string::npos) {
+            vector<string> object_name = splitFirst(values[1], '.');
+
+            if (classes_variables.count(trim(object_name[0]))) {
+                if (classes_variables[object_name[0]].existsVariable(trim(object_name[1]))) {
+                    if (classes_variables[object_name[0]].isPublic(trim(object_name[1])) || scopes.top().isClassMethod) {
+                        integer_variables[values[0]] = stoi(classes_variables[object_name[0]].getVariableValue(trim(object_name[1])));
+                    }
+                    else {
+                        throwError(errors.PROPERTY_INACCESSIBLE, values[1]);
+                    }
+                }
+                //ISSO TEM Q ESTAR EM OUTRO METODO
+                else if (isObjectMethod(values[1])) {
+                    executeObjectMethod(values[1]);
+                    if (scopes.top().current_return_type == "String")
+                        integer_variables[values[0]] = stoi(scopes.top().returned_string);
+                    else if (scopes.top().current_return_type == "Int")
+                        integer_variables[values[0]] = (scopes.top().returned.returned_int);
+                    else if (scopes.top().current_return_type == "Double")
+                        integer_variables[values[0]] = (int)(scopes.top().returned.returned_double);
+                    else if (scopes.top().current_return_type == "Boolean")
+                        integer_variables[values[0]] = (scopes.top().returned.returned_boolean);
+                    else if (scopes.top().current_return_type == "Char")
+                        integer_variables[values[0]] = (scopes.top().returned.returned_char);
+                }
+            }
+            else {
+                throwError(errors.VARIABLE_NOT_EXISTS, values[1]);
+                throw - 1;
+            }
+
+        }
         else {
             //Atualização de vetores
             if (isVector(values[0])) {
@@ -277,6 +328,39 @@ void declareDouble(vector<string> values, string type_identifier) {
                 current_line = scopes.top().back_loop_in_line;
             }
         }
+        else if (values[1].find(".") != string::npos) {
+            vector<string> object_name = splitFirst(values[1], '.');
+
+            if (classes_variables.count(trim(object_name[0]))) {
+                if (classes_variables[object_name[0]].existsVariable(trim(object_name[1]))) {
+                    if (classes_variables[object_name[0]].isPublic(trim(object_name[1])) || scopes.top().isClassMethod) {
+                        double_variables[values[0]] = stoi(classes_variables[object_name[0]].getVariableValue(trim(object_name[1])));
+                    }
+                    else {
+                        throwError(errors.PROPERTY_INACCESSIBLE, values[1]);
+                    }
+                }
+                //ISSO TEM Q ESTAR EM OUTRO METODO
+                else if (isObjectMethod(values[1])) {
+                    executeObjectMethod(values[1]);
+                    if (scopes.top().current_return_type == "String")
+                        double_variables[values[0]] = stod(scopes.top().returned_string);
+                    else if (scopes.top().current_return_type == "Int")
+                        double_variables[values[0]] = (scopes.top().returned.returned_int);
+                    else if (scopes.top().current_return_type == "Double")
+                        double_variables[values[0]] = (scopes.top().returned.returned_double);
+                    else if (scopes.top().current_return_type == "Boolean")
+                        double_variables[values[0]] = (scopes.top().returned.returned_boolean);
+                    else if (scopes.top().current_return_type == "Char")
+                        double_variables[values[0]] = (scopes.top().returned.returned_char);
+                }
+            }
+            else {
+                throwError(errors.VARIABLE_NOT_EXISTS, values[1]);
+                throw - 1;
+            }
+
+        }
         else {
             //Atualização de vetores
             if (isVector(values[0])) {
@@ -333,6 +417,39 @@ void declareString(vector<string> values, string type_identifier, string content
             file_reference->seekg(scopes.top().back_loop_in_position);
             current_line = scopes.top().back_loop_in_line;
         }
+        else if (values[1].find(".") != string::npos) {
+            vector<string> object_name = splitFirst(values[1], '.');
+
+            if (classes_variables.count(trim(object_name[0]))) {
+                if (classes_variables[object_name[0]].existsVariable(trim(object_name[1]))) {
+                    if (classes_variables[object_name[0]].isPublic(trim(object_name[1])) || scopes.top().isClassMethod) {
+                        string_variables[values[0]] = stoi(classes_variables[object_name[0]].getVariableValue(trim(object_name[1])));
+                    }
+                    else {
+                        throwError(errors.PROPERTY_INACCESSIBLE, values[1]);
+                    }
+                }
+                //ISSO TEM Q ESTAR EM OUTRO METODO
+                else if (isObjectMethod(values[1])) {
+                    executeObjectMethod(values[1]);
+                    if (scopes.top().current_return_type == "String")
+                        string_variables[values[0]] = scopes.top().returned_string;
+                    else if (scopes.top().current_return_type == "Int")
+                        string_variables[values[0]] = to_string(scopes.top().returned.returned_int);
+                    else if (scopes.top().current_return_type == "Double")
+                        string_variables[values[0]] = to_string(scopes.top().returned.returned_double);
+                    else if (scopes.top().current_return_type == "Boolean")
+                        string_variables[values[0]] = to_string(scopes.top().returned.returned_boolean);
+                    else if (scopes.top().current_return_type == "Char")
+                        string_variables[values[0]] = to_string(scopes.top().returned.returned_char);
+                }
+            }
+            else {
+                throwError(errors.VARIABLE_NOT_EXISTS, values[1]);
+                throw - 1;
+            }
+
+        }
         else {
             //Atualização de vetores
             if (isVector(values[0])) {
@@ -378,6 +495,39 @@ void declareBoolean(vector<string> values, string type_identifier) {
                 boolean_variables[values[0]] = scopes.top().returned.returned_boolean;
             else
                 throwError(errors.INCORRECT_TYPE, values[1]);
+        }
+        else if (values[1].find(".") != string::npos) {
+            vector<string> object_name = splitFirst(values[1], '.');
+
+            if (classes_variables.count(trim(object_name[0]))) {
+                if (classes_variables[object_name[0]].existsVariable(trim(object_name[1]))) {
+                    if (classes_variables[object_name[0]].isPublic(trim(object_name[1])) || scopes.top().isClassMethod) {
+                        boolean_variables[values[0]] = stoi(classes_variables[object_name[0]].getVariableValue(trim(object_name[1])));
+                    }
+                    else {
+                        throwError(errors.PROPERTY_INACCESSIBLE, values[1]);
+                    }
+                }
+                //ISSO TEM Q ESTAR EM OUTRO METODO
+                else if (isObjectMethod(values[1])) {
+                    executeObjectMethod(values[1]);
+                    if (scopes.top().current_return_type == "String")
+                        boolean_variables[values[0]] = stoi(scopes.top().returned_string);
+                    else if (scopes.top().current_return_type == "Int")
+                        boolean_variables[values[0]] = (scopes.top().returned.returned_int);
+                    else if (scopes.top().current_return_type == "Double")
+                        boolean_variables[values[0]] = (scopes.top().returned.returned_double);
+                    else if (scopes.top().current_return_type == "Boolean")
+                        boolean_variables[values[0]] = (scopes.top().returned.returned_boolean);
+                    else if (scopes.top().current_return_type == "Char")
+                        boolean_variables[values[0]] = (scopes.top().returned.returned_char);
+                }
+            }
+            else {
+                throwError(errors.VARIABLE_NOT_EXISTS, values[1]);
+                throw - 1;
+            }
+
         }
         else if (values[1] != "true;" || values[1] != "false;")
             boolean_variables[values[0]] = stoi(resolveEvaluation(values[1]));
@@ -520,6 +670,9 @@ bool isVariableUpdate(string params) {
                 return true;
             
         }
+        else if (startsWith(var_value[0], "this.")) {
+            return true;
+        }
         else {
             if (!isNativeFunction(params, true))
                 throwError(errors.VARIABLE_NOT_EXISTS, params);
@@ -587,8 +740,17 @@ void updateVariable(string params) {
     }
     else if (params.find("=") != string::npos) {
         string var_name = split(params, '=')[0];
-        string type = getTypeOfVariable(trim(var_name));
-        declareVariable(type + " " + params, true);
+
+        if (startsWith(var_name, "this.")) {
+            var_name = splitFirst(var_name, '.')[1];
+            string value = split(params, '=')[1];
+            string type = scopes.top().class_reference->getTypeOfVariable(trim(var_name));
+            scopes.top().class_reference->declareVariable(type + " " + var_name + " = " + value, "public", true);
+        }
+        else {
+            string type = getTypeOfVariable(trim(var_name));
+            declareVariable(type + " " + params, true);
+        }
     }
     else {
         string var_name = params.substr(0, params.length() - 3);
@@ -604,4 +766,178 @@ void updateVariable(string params) {
         }
     }
 
+}
+
+//
+bool isClassDeclaration(string params) {
+    return startsWith(params, "class");
+}
+
+//
+void registerClass(string params) {
+    //Escopo na mesma linha
+    vector<string> class_pieces = splitFirst(params, ' ');
+
+    if (endsWith(trim(class_pieces[1]), "{")) {
+        //Armazena nome e onde a classe começa
+        string class_name = class_pieces[1].substr(0, class_pieces[1].length() - 1);
+        class_model[trim(class_name)] = file_reference->tellg();
+
+        //Ignora a classe
+        Scope new_scope;
+        scopes.push(new_scope);
+
+        scopes.top().execute_block = false;
+        scopes.top().search_block_end_class = true;
+        scopes.top().block_count++;
+    }
+
+}
+
+//
+bool isObjectDeclaration(string content) {
+    vector<string> declaration_pieces = splitFirst(content, ' ');
+    if (declaration_pieces.size() == 2) {
+        return (class_model.count(trim(declaration_pieces[0])));
+    }
+    return false;
+}
+
+//
+void declareObject(string content, bool ignore_errors) {
+    //Sem o new
+    vector<string> var_pieces = splitFirst(content, ' ');
+    string name = var_pieces[1];
+    name = name.substr(0, name.length() - 1);
+    string type = var_pieces[0];
+
+    Object new_class;
+    new_class.type_name = type;
+
+    if (!variableExists(name)) {
+        string line;
+        scopes.top().scope_variables.push_back(name);
+
+        scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+
+        Scope new_scope;
+        scopes.push(new_scope);
+
+        file_reference->clear();
+        file_reference->seekg(class_model[trim(type)]);
+
+        scopes.top().search_block_end_class = true;
+        scopes.top().execute_block = true;
+        scopes.top().block_count++;
+
+        while (getline(*file_reference, line) && scopes.top().search_block_end_class) {
+            if (line.empty() || startsWith(line, "//")) continue;
+            if (!line.empty()) line = trim(line);
+
+            interpreterLineInClass(line, &new_class);
+        }
+
+        file_reference->clear();
+        file_reference->seekg(scopes.top().back_loop_in_position);
+        current_line = scopes.top().back_loop_in_line;
+
+        vector<string> p = splitFirst(content, ' ');
+
+        //Definido porque o escopo precisa ter controle dessa variavel
+        if (p.size() == 2) {
+
+            vector<string> values;
+            if (p[1].find("=") != string::npos) {
+                values = splitFirst(p[1], '=');
+                values[0] = trim(values[0]);
+                values[1] = trim(values[1]);
+            }
+            else
+                values.push_back(trim(p[1].substr(0, p[1].length() - 1)));
+            variables_names.push_back(values[0]);
+        }
+
+    }
+    else {
+        //Disparar erro
+    }
+    classes_variables[name] = new_class;
+}
+
+// 
+bool isObjectVariableUpdate(string content) {
+    vector<string> variable_parts = splitFirst(content, '.');
+
+    if (variable_parts.size() == 2) {
+        if (variable_parts[1].find("=") != string::npos && classes_variables.count(variable_parts[0]))
+            return true;
+    }
+
+    return false;
+}
+
+void updateObjectVariable(string content) {
+    vector<string> variable_parts = splitFirst(content, '.');
+
+    if (variable_parts.size() == 2) {
+        if (variable_parts[1].find("=") != string::npos && classes_variables.count(trim(variable_parts[0]))) {
+            string declaration = classes_variables[trim(variable_parts[0])].getTypeOfVariable(trim(splitFirst(variable_parts[1], '=')[0]));
+            string property_name = trim(splitFirst(variable_parts[1], '=')[0]);
+
+            if (classes_variables[trim(variable_parts[0])].isPublic(property_name)) {
+                classes_variables[trim(variable_parts[0])].declareVariable(declaration + " " + variable_parts[1], "public", true);
+            }
+            else {
+                throwError(errors.PROPERTY_INACCESSIBLE, content);
+            }
+
+        }
+    }
+}
+
+//
+bool isObjectMethod(string content) {
+    vector<string> variable_parts = splitFirst(content, '.');
+
+    if (variable_parts.size() == 2) {
+        if (isParenthesesOk(content) && classes_variables.count(variable_parts[0]))
+            return true;
+    }
+
+    return false;
+}
+
+//
+void executeObjectMethod(string content) {
+    vector<string> methods_parts = splitFirst(content, '.');
+
+    if (methods_parts.size() == 2) {
+        if (isParenthesesOk(content) && classes_variables.count(methods_parts[0])) {
+            string method_name = trim(splitFirst(methods_parts[1], '(')[0]);
+
+            if (classes_variables[trim(methods_parts[0])].isPublic(method_name)) {
+                string line;
+                scopes.top().back_loop_in_position = (int)(file_reference->tellg());
+                scopes.top().isClassMethod = true;
+                executeCustomFunction(content, &classes_variables[trim(methods_parts[0])]);
+
+                while (getline(*file_reference, line) && scopes.top().search_block_end_method) {
+                    if (line.empty() || startsWith(line, "//")) continue;
+                    if (!line.empty()) line = trim(line);
+
+                    interpreterLineInMethod(line);
+                }
+
+                file_reference->clear();
+                file_reference->seekg(scopes.top().back_loop_in_position);
+                current_line = scopes.top().back_loop_in_line;
+                scopes.top().isClassMethod = false;
+
+            }
+            else {
+                throwError(errors.PROPERTY_INACCESSIBLE, content);
+            }
+        }
+
+    }
 }

@@ -1,13 +1,51 @@
-class Pessoa {
-	public String nome = "Testei aqui";
-	public Int idade = 13;
+class Person{
+	public String name;
+	public Int age;
+	public Double height;
 
 	public Void setName(String n){
-		println(n);
-		println("OUTRA COISA");
+		this.name = n;
+	}
+
+	public Void setAge(Int a){
+		this.age = a;
+	}	
+
+	public Void setHeight(Double h){
+		this.height = h;
+	}
+
+	public String getName(){
+		return this.name;
+	}
+
+	public Int getAge(){
+		return this.age;
+	}
+
+	public Double getHeight(){
+		return this.height;
+	}
+
+	public Void showInfos(){
+		printf("NOME: {this.name}\nIDADE: {this.age}\nALTURA: {this.height}");
 	}
 }
 
-Pessoa p;
-p.setName("ABC");
-printf("{p.nome}");
+Person p;
+
+println("Digite o nome da pessoa: \n");
+String nome = "CESAR";
+p.setName(nome);
+
+println("\nDigite a idade: \n");
+Int idade = 13;
+p.setAge(idade);
+
+println("\nDigite a altura: \n");
+Double altura = 1513;
+p.setHeight(altura);
+
+println("");
+
+p.showInfos();

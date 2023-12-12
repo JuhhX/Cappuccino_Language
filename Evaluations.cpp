@@ -457,6 +457,24 @@ string resolveEvaluation(string params) {
                         }
                         operands.push(op_struct);
                     }
+                    else if (startsWith(temp, "this.")) {
+                        string var_name = trim(splitFirst(temp, '.')[1]);
+                        if (scopes.top().class_reference->existsVariable(var_name)) {
+                            if (scopes.top().class_reference->isPublic(var_name) || scopes.top().isClassMethod) {
+                                if (scopes.top().class_reference->getTypeOfVariable(var_name) != "String") {
+                                    op_struct.double_value = stod(getVariableValue(var_name, false));
+                                }
+                                else {
+                                    op_struct.is_string = true;
+                                    op_struct.string_value = "\"" + getVariableValue(var_name, false) + "\"";
+                                }
+                                operands.push(op_struct);
+                            }
+                            else {
+                                throwError(errors.PROPERTY_INACCESSIBLE, temp);
+                            }
+                        }
+                    }
                     else {
                         if (startsWith(temp, "\"") && endsWith(temp, "\"")) {
                             op_struct.is_string = true;
@@ -507,6 +525,24 @@ string resolveEvaluation(string params) {
                 op_struct.string_value = "\"" + getVariableValue(temp, false) + "\"";
             }
             operands.push(op_struct);
+        }
+        else if (startsWith(temp, "this.")) {
+            string var_name = trim(splitFirst(temp, '.')[1]);
+            if (scopes.top().class_reference->existsVariable(var_name)) {
+                if (scopes.top().class_reference->isPublic(var_name) || scopes.top().isClassMethod) {
+                    if (scopes.top().class_reference->getTypeOfVariable(var_name) != "String") {
+                        op_struct.double_value = stod(scopes.top().class_reference->getVariableValue(var_name));
+                    }
+                    else {
+                        op_struct.is_string = true;
+                        op_struct.string_value = "\"" + scopes.top().class_reference->getVariableValue(var_name) + "\"";
+                    }
+                    operands.push(op_struct);
+                }
+                else {
+                    throwError(errors.PROPERTY_INACCESSIBLE, temp);
+                }
+            }
         }
         else {
             //Arrumar o resolveAssignment

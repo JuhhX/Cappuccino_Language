@@ -5,9 +5,6 @@
 
 using namespace std;
 
-map<string, size_t> class_model;
-map<string, Object> classes_variables;
-
 //Dispara erros
 void throwError(string error_type, string line_content) {
     cout << endl << colors.RED << (filename + ":" + to_string(current_line) + ": ") << error_type << colors.RESET << endl;
@@ -71,12 +68,12 @@ void executeCustomFunction(string content) {
 }
 
 //Executa métodos definidos no código
-void executeCustomFunction(string content, Object c) {
+void executeCustomFunction(string content, Object * c) {
     vector<string> command_parameters = splitFirst(content, '(');
     string method_name = trim(splitFirst(command_parameters[0], '.')[1]);
 
     //Sem parametros
-    if (startsWith(command_parameters[1], ")") && c.custom_functions[trim(method_name)].params == "") {
+    if (startsWith(command_parameters[1], ")") && c->custom_functions[trim(method_name)].params == "") {
 
         scopes.top().back_loop_in_position = (int)(file_reference->tellg());
         scopes.top().back_loop_in_line = current_line;
@@ -85,10 +82,11 @@ void executeCustomFunction(string content, Object c) {
         scopes.push(new_scope);
 
         file_reference->clear();
-        file_reference->seekg(c.custom_functions[trim(method_name)].start_in_line);
-        current_line = static_cast<int>(c.custom_functions[trim(method_name)].start_in_line);
+        file_reference->seekg(c->custom_functions[trim(method_name)].start_in_line);
+        current_line = static_cast<int>(c->custom_functions[trim(method_name)].start_in_line);
 
-        scopes.top().method_reference = &c.custom_functions[trim(method_name)];
+        scopes.top().class_reference = c;
+        scopes.top().method_reference = &c->custom_functions[trim(method_name)];
         scopes.top().search_block_end_method = true;
         scopes.top().execute_block = true;
         scopes.top().block_count++;
@@ -101,7 +99,7 @@ void executeCustomFunction(string content, Object c) {
         command_parameters[1] = command_parameters[1].substr(0, command_parameters[1].length() - 2);
 
         vector<string> informed_params = split(command_parameters[1], ',');
-        vector<string> method_params = split(c.custom_functions[trim(method_name)].params, ',');
+        vector<string> method_params = split(c->custom_functions[trim(method_name)].params, ',');
 
         if (informed_params.size() == method_params.size()) {
             Scope new_scope;
@@ -112,16 +110,17 @@ void executeCustomFunction(string content, Object c) {
             }
 
             file_reference->clear();
-            file_reference->seekg(c.custom_functions[trim(method_name)].start_in_line);
-            current_line = static_cast<int>(c.custom_functions[trim(method_name)].start_in_line);
+            file_reference->seekg(c->custom_functions[trim(method_name)].start_in_line);
+            current_line = static_cast<int>(c->custom_functions[trim(method_name)].start_in_line);
 
-            scopes.top().method_reference = &c.custom_functions[trim(method_name)];
+            scopes.top().class_reference = c;
+            scopes.top().method_reference = &c->custom_functions[trim(method_name)];
             scopes.top().search_block_end_method = true;
             scopes.top().execute_block = true;
             scopes.top().block_count++;
         }
         else {
-            throwError(errors.MISSING_PARAMETERS, c.custom_functions[trim(command_parameters[0])].params);
+            throwError(errors.MISSING_PARAMETERS, c->custom_functions[trim(command_parameters[0])].params);
         }
     }
 }
@@ -552,7 +551,7 @@ void executeForBlock(string params) {
 //Verifica se é uma declaração de método
 bool isMethodDeclaration(string params) {
     if (isParenthesesOk(params)){
-        return startsWith(params, "public static");
+        return startsWith(params, "public");
     }
     return false;
 }
@@ -584,179 +583,6 @@ void registerMethod(string params) {
     custom_functions[new_function.name] = new_function;
 }
 
-//
-bool isClassDeclaration(string params) {
-    return startsWith(params, "class");
-}
-
-//
-void registerClass(string params) {
-    //Escopo na mesma linha
-    vector<string> class_pieces = splitFirst(params, ' ');
-
-    if (endsWith(trim(class_pieces[1]), "{")) {
-        //Armazena nome e onde a classe começa
-        string class_name = class_pieces[1].substr(0, class_pieces[1].length() - 1);
-        class_model[trim(class_name)] = file_reference->tellg();
-
-        //Ignora a classe
-        Scope new_scope;
-        scopes.push(new_scope);
-
-        scopes.top().execute_block = false;
-        scopes.top().search_block_end_class = true;
-        scopes.top().block_count++;
-    }
-    
-}
-
-//
-bool isObjectDeclaration(string content) {
-    vector<string> declaration_pieces = splitFirst(content, ' ');
-    if (declaration_pieces.size() == 2) {
-        return (class_model.count(trim(declaration_pieces[0])));
-    }   
-    return false;
-}
-
-//
-void declareObject(string content, bool ignore_errors) {
-    //Sem o new
-    vector<string> var_pieces = splitFirst(content, ' ');
-    string name = var_pieces[1];
-    name = name.substr(0, name.length() - 1);
-    string type = var_pieces[0];
-
-    Object new_class;
-    new_class.type_name = type;
-
-    if (!variableExists(name)) {
-        string line;
-        scopes.top().scope_variables.push_back(name);
-
-        scopes.top().back_loop_in_position = (int)(file_reference->tellg());
-
-        Scope new_scope;
-        scopes.push(new_scope);
-
-        file_reference->clear();
-        file_reference->seekg(class_model[trim(type)]);
-
-        scopes.top().search_block_end_class = true;
-        scopes.top().execute_block = true;
-        scopes.top().block_count++;
-
-        while (getline(*file_reference, line) && scopes.top().search_block_end_class) {
-            if (line.empty() || startsWith(line, "//")) continue;
-            if (!line.empty()) line = trim(line);
-
-            interpreterLineInClass(line, &new_class);
-        }
-
-        file_reference->clear();
-        file_reference->seekg(scopes.top().back_loop_in_position);
-        current_line = scopes.top().back_loop_in_line;
-
-        vector<string> p = splitFirst(content, ' ');
-
-        //Definido porque o escopo precisa ter controle dessa variavel
-        if (p.size() == 2) {
-
-            vector<string> values;
-            if (p[1].find("=") != string::npos) {
-                values = splitFirst(p[1], '=');
-                values[0] = trim(values[0]);
-                values[1] = trim(values[1]);
-            }
-            else
-                values.push_back(trim(p[1].substr(0, p[1].length() - 1)));
-            variables_names.push_back(values[0]);
-        }
-
-    }
-    else {
-        //Disparar erro
-    }
-    classes_variables[name] = new_class;
-}
-
-// 
-bool isObjectVariableUpdate(string content) {
-    vector<string> variable_parts = splitFirst(content, '.');
-
-    if (variable_parts.size() == 2) {
-        if (variable_parts[1].find("=") != string::npos && classes_variables.count(variable_parts[0])) 
-            return true;
-    }
-    
-    return false;
-}
-
-void updateObjectVariable(string content) {
-    vector<string> variable_parts = splitFirst(content, '.');
-
-    if (variable_parts.size() == 2) {
-        if (variable_parts[1].find("=") != string::npos && classes_variables.count(trim(variable_parts[0]))) {
-            string declaration = classes_variables[trim(variable_parts[0])].getTypeOfVariable(trim(splitFirst(variable_parts[1], '=')[0]));
-            string property_name = trim(splitFirst(variable_parts[1], '=')[0]);
-
-            if (classes_variables[trim(variable_parts[0])].isPublic(property_name)) {
-                classes_variables[trim(variable_parts[0])].declareVariable(declaration + " " + variable_parts[1], "public", true);
-            }
-            else {
-                throwError(errors.PROPERTY_INACCESSIBLE, content);
-            }
-
-        }
-    }
-}
-
-//
-bool isObjectMethod(string content) {
-    vector<string> variable_parts = splitFirst(content, '.');
-
-    if (variable_parts.size() == 2) {
-        if (isParenthesesOk(content) && classes_variables.count(variable_parts[0]))
-            return true;
-    }
-
-    return false;
-}
-
-//
-void executeObjectMethod(string content) {
-    vector<string> methods_parts = splitFirst(content, '.');
-
-    if (methods_parts.size() == 2) {
-        if (isParenthesesOk(content) && classes_variables.count(methods_parts[0])) {
-            string method_name = trim(splitFirst(methods_parts[1], '(')[0]);
-
-            if (classes_variables[trim(methods_parts[0])].isPublic(method_name)) {
-                string line;
-                scopes.top().back_loop_in_position = (int)(file_reference->tellg());
-                scopes.top().isClassMethod = true;
-                executeCustomFunction(content, classes_variables[trim(methods_parts[0])]);
-
-                while (getline(*file_reference, line) && scopes.top().search_block_end_method) {
-                    if (line.empty() || startsWith(line, "//")) continue;
-                    if (!line.empty()) line = trim(line);
-
-                    interpreterLineInMethod(line);
-                }
-
-                file_reference->clear();
-                file_reference->seekg(scopes.top().back_loop_in_position);
-                current_line = scopes.top().back_loop_in_line;
-                scopes.top().isClassMethod = false;
-
-            }
-            else {
-                throwError(errors.PROPERTY_INACCESSIBLE, content);
-            }
-        }
-            
-    }
-}
 
 //Executa a função adequada para cada linha
 void interpreterLine(string content) {
@@ -981,7 +807,16 @@ void interpreterLineInMethod(string content) {
 
     if (startsWith(content, "return") && endsWith(content, ";") && scopes.top().execute_block) {
         vector<string> returned_pieces = splitFirst(content, ' ');
-        string return_type = getTypeOfVariable(returned_pieces[1].substr(0, returned_pieces[1].length()-1));
+        string return_type;
+
+        if (startsWith(trim(returned_pieces[1]), "this.")) {
+            string var_name = trim(splitFirst(returned_pieces[1], '.')[1]);
+            var_name = var_name.substr(0, var_name.length() - 1);
+            return_type = scopes.top().class_reference->getTypeOfVariable(var_name);
+        }
+        else {
+            return_type = getTypeOfVariable(returned_pieces[1].substr(0, returned_pieces[1].length() - 1));
+        }
 
         if (return_type == "Null")
             return_type = getTypeOfData(returned_pieces[1].substr(0, returned_pieces[1].length() - 1));
@@ -1067,6 +902,7 @@ void interpreterLineInMethod(string content) {
 
                 scopes.top().current_return_type = return_type;
                 scopes.top().returned = *returned_value;
+                scopes.top().returned_string = returned_value_string;
 
             }
         }

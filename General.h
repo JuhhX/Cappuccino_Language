@@ -320,10 +320,6 @@ class Object {
             return false;
         }
 
-        void executeMethod(string content) {
-
-        }
-
         string getTypeOfVariable(string s) {
             string returned = "Null";
 
@@ -341,7 +337,7 @@ class Object {
             return returned;
         }
 	
-	private:
+	
 		bool existsVariable(string var_name) {
 			for (string var : variables_names) {
 				if (var_name == var)
@@ -439,6 +435,7 @@ extern stack<Scope> scopes;
 static map<string, FunctionsAssignment> custom_functions;
 
 void executeCustomFunction(string content);
+void executeCustomFunction(string content, Object * c);
 bool isCustomFunction(string content, bool ignore_error);
 void interpreterLine(string content);
 void interpreterLineAndFindEnd(string content);
